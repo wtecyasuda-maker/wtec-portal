@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W-TEC Business Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0a2744;--navy2:#0f3460;--navy3:#1a4a7a;
+  --blue:#1e6fbf;--blue2:#4a90d0;--blue3:#7ab8e8;
+  --teal:#0fa37f;--teal2:#1dbfa0;
+  --text:#e8f0f8;--text2:#8ab8d8;--text3:rgba(100,160,220,.4);
+  --border:rgba(100,160,220,.15);--border2:rgba(100,160,220,.28);
+  --card:rgba(255,255,255,.04);--card2:rgba(255,255,255,.07);
+  --red:#e05252;--amber:#e8a020;--green:#0fa37f;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+button,a,[onclick]{cursor:pointer;}
+body{font-family:'Outfit','Hiragino Sans',sans-serif;background:var(--navy);color:var(--text);min-height:100vh;}
+
+/* ログイン */
+#login-screen{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:var(--navy);}
+#login-screen.hidden{display:none;}
+.login-bg-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;}
+.orb1{width:400px;height:400px;background:var(--blue);opacity:.12;top:-100px;right:-100px;}
+.orb2{width:300px;height:300px;background:var(--teal);opacity:.08;bottom:-80px;left:-60px;}
+.login-card{position:relative;width:92%;max-width:380px;background:rgba(10,39,68,.9);border:1px solid var(--border2);border-radius:20px;padding:2.5rem 2rem;text-align:center;}
+.login-badge{display:inline-flex;align-items:center;gap:6px;background:var(--navy3);border:1px solid var(--border2);border-radius:20px;padding:4px 14px;font-size:10px;letter-spacing:.12em;color:var(--blue3);margin-bottom:1.25rem;}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:.25rem;}
+.logo-icon{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:26px;height:26px;}
+.login-company{font-size:26px;font-weight:800;color:#fff;letter-spacing:.06em;}
+.login-sub{font-size:11px;color:var(--text2);letter-spacing:.1em;margin-bottom:1.5rem;}
+.step-label{font-size:12px;color:var(--text2);margin-bottom:.6rem;text-align:left;}
+.user-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;}
+.ubtn{padding:12px 8px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .18s;width:100%;}
+.ubtn:hover{background:rgba(30,111,191,.2);border-color:var(--blue2);color:#fff;}
+.ubtn.selected{background:rgba(30,111,191,.3);border-color:var(--blue2);color:#fff;font-weight:600;}
+#pin-section{display:none;}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:1.25rem;}
+.pin-dot{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;transition:all .15s;}
+.pin-dot.filled{background:var(--blue2);border-color:var(--blue2);}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:220px;margin:0 auto;}
+.pin-key{padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-size:18px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.pin-key:hover{background:rgba(30,111,191,.25);border-color:var(--blue2);}
+.pin-key:active{transform:scale(.95);}
+.pin-error{color:var(--red);font-size:12px;height:20px;margin-top:.5rem;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
+.shake{animation:shake .3s ease;}
+
+/* アプリ */
+#app{display:none;min-height:100vh;}
+#app.visible{display:flex;}
+.sidebar{width:220px;flex-shrink:0;background:rgba(10,39,68,.96);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .25s;}
+.sidebar.hidden{transform:translateX(-220px);}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:1.25rem 1rem;border-bottom:1px solid var(--border);}
+.sb-logo .logo-icon{width:34px;height:34px;border-radius:8px;}
+.sb-logo .logo-icon svg{width:20px;height:20px;}
+.sb-company{font-size:16px;font-weight:700;color:#fff;}
+.nav-sec{padding:.75rem .5rem .25rem;font-size:10px;letter-spacing:.1em;color:var(--text3);font-weight:600;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:.7rem 1rem;border-radius:8px;margin:1px .5rem;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all .15s;border:none;background:none;width:calc(100% - 1rem);text-align:left;font-family:inherit;}
+.nav-item:hover{background:rgba(255,255,255,.06);color:var(--text);}
+.nav-item.active{background:rgba(30,111,191,.25);color:#fff;border-left:2px solid var(--blue2);}
+.nav-icon{width:18px;height:18px;flex-shrink:0;opacity:.7;}
+.nav-item.active .nav-icon{opacity:1;}
+.sb-footer{margin-top:auto;padding:1rem .5rem;border-top:1px solid var(--border);}
+.user-chip{display:flex;align-items:center;gap:8px;padding:.6rem 1rem;border-radius:8px;background:var(--card);}
+.user-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.user-name{font-size:13px;color:var(--text);}
+.user-role{font-size:10px;color:var(--text2);}
+.logout-btn{display:flex;align-items:center;gap:8px;width:calc(100% - 1rem);padding:.6rem 1rem;margin:.4rem;border-radius:8px;background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;}
+.logout-btn:hover{background:rgba(255,255,255,.06);color:var(--text);}
+.main{margin-left:220px;flex:1;transition:margin .25s;}
+.main.full{margin-left:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.875rem 1.5rem;border-bottom:1px solid var(--border);background:rgba(10,39,68,.9);position:sticky;top:0;z-index:50;}
+.topbar-l{display:flex;align-items:center;gap:12px;}
+.menu-btn{width:36px;height:36px;border-radius:8px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:3px;padding:10px;}
+.menu-btn span{display:block;width:16px;height:1.5px;background:var(--text2);}
+.page-title{font-size:15px;font-weight:600;}
+.topbar-r{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:2px;}
+.content{padding:1.5rem;}
+.page{display:none;}.page.active{display:block;}
+
+/* ダッシュボード */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;}
+.stat-card.blue{border-color:rgba(30,111,191,.3);background:rgba(30,111,191,.08);}
+.stat-card.red{border-color:rgba(224,82,82,.3);background:rgba(224,82,82,.06);}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:6px;}
+.stat-value{font-size:26px;font-weight:700;color:#fff;}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:4px;}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;}
+.dash-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;}
+.dash-card-hdr{font-size:13px;font-weight:600;margin-bottom:.75rem;display:flex;justify-content:space-between;}
+.dash-more{font-size:11px;color:var(--blue3);cursor:pointer;font-weight:400;}
+.act-item{display:flex;align-items:center;gap:10px;padding:.5rem 0;border-bottom:1px solid var(--border);}
+.act-item:last-child{border-bottom:none;}
+.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-e{background:var(--red);}.dot-n{background:var(--blue2);}.dot-i{background:var(--teal);}
+.act-main{flex:1;min-width:0;}
+.act-title{font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.act-sub{font-size:11px;color:var(--text2);}
+.act-date{font-size:11px;color:var(--text3);white-space:nowrap;}
+.badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;}
+.b-e{background:rgba(224,82,82,.15);color:var(--red);}
+.b-n{background:rgba(74,144,208,.15);color:var(--blue3);}
+.b-i{background:rgba(15,163,127,.15);color:var(--teal2);}
+.modules-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+.mod-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .2s;}
+.mod-card:hover{background:var(--card2);border-color:var(--border2);transform:translateY(-2px);}
+.mod-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:.5rem;}
+.mod-name{font-size:14px;font-weight:600;}
+.mod-desc{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.5;}
+.empty{text-align:center;padding:1.5rem;color:var(--text3);font-size:13px;}
+
+/* ユーザー管理 */
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;max-width:480px;}
+.form-card h3{font-size:14px;font-weight:600;margin-bottom:1rem;}
+.urow{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.urow input{background:rgba(255,255,255,.06);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;}
+.btn-p{padding:9px 20px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-s{padding:8px 16px;background:var(--card);border:1px solid var(--border2);color:var(--text);border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;}
+.btn-d{padding:6px 12px;border:1px solid rgba(224,82,82,.4);color:var(--red);border-radius:8px;background:none;cursor:pointer;font-size:12px;font-family:inherit;}
+
+/* 水処理サブナビ */
+.wt-layout{display:flex;min-height:calc(100vh - 60px);}
+.wt-subnav{width:150px;flex-shrink:0;border-right:1px solid var(--border);padding:.5rem 0;}
+.wt-nav-btn{display:block;width:calc(100% - 1rem);padding:.65rem 1rem;border:none;background:none;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;text-align:left;border-radius:6px;margin:1px .5rem;font-family:inherit;transition:all .15s;}
+.wt-nav-btn:hover{background:rgba(255,255,255,.06);color:var(--text);}
+.wt-nav-btn.active{background:rgba(30,111,191,.2);color:#fff;border-left:2px solid var(--blue2);}
+.wt-content{flex:1;padding:.75rem 1.25rem;overflow-y:auto;}
+.wt-page{display:none;}.wt-page.active{display:block;}
+
+/* coming soon */
+.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;color:var(--text2);text-align:center;}
+.coming-icon{font-size:48px;margin-bottom:1rem;opacity:.5;}
+.coming-soon h2{font-size:18px;font-weight:600;color:var(--text);margin-bottom:.5rem;}
+.coming-soon p{font-size:13px;line-height:1.7;max-width:360px;}
+
+/* ===== 水処理モジュール ===== */
+#page-water input,#page-water select,#page-water textarea{
+  background:rgba(255,255,255,.06);border:1px solid var(--border2);
+  color:var(--text);border-radius:8px;padding:7px 10px;
+  font-size:13px;font-family:inherit;width:100%;
+}
+#page-water input:focus,#page-water select:focus,#page-water textarea:focus{outline:none;border-color:var(--blue2);}
+#page-water select option{background:var(--navy2);color:var(--text);}
+#page-water label{font-size:12px;color:var(--text2);}
+#page-water textarea{resize:vertical;min-height:70px;}
+.wt-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;}
+.wt-card-title{font-size:14px;font-weight:600;margin-bottom:1rem;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg.full{grid-column:1/-1;}
+.hint{font-size:11px;color:var(--text3);margin-top:2px;}
+.type-row{display:flex;gap:8px;}
+.tbtn{flex:1;padding:8px;border:1px solid var(--border2);border-radius:8px;background:none;cursor:pointer;font-size:13px;color:var(--text2);font-family:inherit;transition:all .15s;}
+.tbtn.e{background:rgba(224,82,82,.2);border-color:var(--red);color:#f08080;font-weight:600;}
+.tbtn.n{background:rgba(30,111,191,.2);border-color:var(--blue2);color:var(--blue3);font-weight:600;}
+.tbtn.i{background:rgba(15,163,127,.2);border-color:var(--teal);color:var(--teal2);font-weight:600;}
+.sbtn{flex:1;padding:8px;border:1px solid var(--border2);border-radius:8px;background:none;cursor:pointer;font-size:13px;color:var(--text2);font-family:inherit;transition:all .15s;}
+.sbtn.yes{background:rgba(15,163,127,.2);border-color:var(--teal);color:var(--teal2);font-weight:600;}
+.sbtn.no{background:var(--card);border-color:var(--border);color:var(--text2);font-weight:600;}
+.divider{border-top:1px solid var(--border);margin:1rem 0;padding-top:1rem;}
+.sec-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:.6rem;letter-spacing:.04em;}
+.btn-full{width:100%;padding:10px;margin-top:10px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-full:hover{opacity:.88;}
+.wt-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;}
+.wt-stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.7rem 1rem;}
+.wt-stat-l{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.wt-stat-v{font-size:20px;font-weight:700;}
+.rec{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.9rem 1.25rem;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+.rec:hover{border-color:var(--border2);}
+.rec-main{flex:1;min-width:0;}
+.rec-title{font-size:14px;font-weight:600;margin-bottom:3px;}
+.rec-sub{font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-date{font-size:11px;color:var(--text3);white-space:nowrap;}
+.wt-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:12px;white-space:nowrap;}
+.wb-e{background:rgba(224,82,82,.15);color:var(--red);}
+.wb-n{background:rgba(74,144,208,.15);color:var(--blue3);}
+.wb-i{background:rgba(15,163,127,.15);color:var(--teal2);}
+.wb-sy{background:rgba(15,163,127,.12);color:var(--teal2);}
+.wb-sn{background:var(--card);color:var(--text3);}
+.cust-card{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.cust-hdr{display:flex;align-items:center;gap:12px;padding:.875rem 1.25rem;cursor:pointer;}
+.cust-hdr:hover{background:var(--card2);}
+.cust-av{width:34px;height:34px;border-radius:50%;background:rgba(30,111,191,.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--blue3);flex-shrink:0;}
+.cust-body{border-top:1px solid var(--border);padding:1rem 1.25rem;display:none;}
+.cust-body.open{display:block;}
+.site-block{background:rgba(255,255,255,.03);border-radius:8px;padding:.7rem 1rem;margin-bottom:8px;}
+.site-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.eq-tag{background:rgba(100,100,220,.15);color:#aab0f0;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;}
+.cy-tag{background:rgba(15,163,127,.15);color:var(--teal2);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;}
+.add-dashed{display:flex;align-items:center;justify-content:center;gap:6px;padding:7px;border:1px dashed var(--border2);border-radius:8px;background:none;cursor:pointer;color:var(--text2);font-size:13px;width:100%;margin-top:4px;font-family:inherit;}
+.add-dashed:hover{background:var(--card2);}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:#0f2a4a;border:1px solid var(--border2);border-radius:16px;padding:1.5rem;width:92%;max-width:500px;max-height:88vh;overflow-y:auto;}
+.modal-hdr{font-size:15px;font-weight:600;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;}
+.xbtn{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text2);}
+.drow{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.drow:last-child{border-bottom:none;}
+.dk{color:var(--text2);min-width:75px;flex-shrink:0;}
+.btn-outline{padding:7px 14px;border-radius:8px;background:none;border:1px solid var(--border2);color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;}
+.btn-outline:hover{background:var(--card2);}
+.btn-outline.danger{border-color:rgba(224,82,82,.4);color:var(--red);}
+.btn-outline.teal{border-color:rgba(15,163,127,.4);color:var(--teal2);}
+.search-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+.search-row input,.search-row select{background:rgba(255,255,255,.06);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;}
+.empty-state{text-align:center;padding:2rem;color:var(--text3);font-size:13px;}
+
+
+/* 写真添付 */
+.photo-area{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;}
+.photo-cat-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;}
+.photo-slots{display:flex;gap:6px;flex-wrap:wrap;min-height:40px;}
+.photo-item{display:flex;flex-direction:column;gap:4px;width:80px;flex-shrink:0;}
+.photo-slot{width:80px;height:80px;border:1px dashed var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;background:var(--card);}
+.photo-slot img{width:100%;height:100%;object-fit:cover;}
+.photo-rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:var(--red);border:none;color:#fff;font-size:11px;cursor:pointer;display:none;line-height:1;align-items:center;justify-content:center;}
+.photo-slot:hover .photo-rm{display:flex;}
+.photo-cap{font-size:11px;padding:3px 5px;border:1px solid var(--border);border-radius:6px;width:100%;font-family:inherit;background:var(--card);color:var(--text);resize:none;}
+/* 印刷 */
+@media print{
+  @page{size:A4;margin:15mm 12mm;}
+  /* アプリ全体を非表示にして印刷レイアウトだけ出す */
+  body > *{display:none!important;}
+  body.mode-taiou #print-taiou{display:block!important;}
+  body.mode-kyukyu #print-kyukyu{display:block!important;}
+  #print-taiou,#print-kyukyu{
+    font-family:'Hiragino Sans','Meiryo',sans-serif;
+    font-size:9.5pt;color:#000;
+    background:#fff;
+  }
+  img{-webkit-print-color-adjust:exact;print-color-adjust:exact;display:block!important;}
+  #print-taiou,#print-kyukyu{position:relative;min-height:267mm;}
+}
+/* 印刷レイアウト（通常は非表示） */
+#print-taiou,#print-kyukyu{display:none;}
+#print-taiou table,#print-kyukyu table{width:100%;border-collapse:collapse;font-size:8.5pt;margin-bottom:3mm;table-layout:fixed;}
+#print-taiou th,#print-kyukyu th{background:#efefef;border:0.5pt solid #666;padding:2px 5px;font-weight:700;text-align:center;font-size:8pt;}
+#print-taiou td,#print-kyukyu td{border:0.5pt solid #666;padding:2px 6px;vertical-align:middle;line-height:1.6;}
+#print-taiou .pt-header,#print-kyukyu .pk-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3mm;}
+#print-taiou h1,#print-kyukyu h1{font-size:16pt;font-weight:700;text-align:center;margin:0 0 4mm;}
+#print-taiou .pt-date,#print-kyukyu .pk-date{text-align:right;font-size:9pt;margin-bottom:2mm;}
+#print-taiou .pt-biko,#print-kyukyu .pk-biko{border:0.5pt solid #666;min-height:12mm;padding:2px 6px;font-size:8.5pt;white-space:pre-wrap;line-height:1.7;}
+#print-taiou .pt-sign,#print-kyukyu .pk-sign{display:flex;justify-content:flex-end;margin-top:3mm;font-size:9pt;}
+#print-taiou .pt-sign-line,#print-kyukyu .pk-sign-line{border-bottom:0.5pt solid #333;min-width:45mm;padding:1mm 2mm;display:inline-block;}
+#print-taiou .pt-photo-grid,#print-kyukyu .pt-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin-bottom:3mm;}
+#print-taiou .pt-photo-item,#print-kyukyu .pt-photo-item{display:flex;flex-direction:column;gap:1mm;}
+#print-taiou .pt-photo-wrap,#print-kyukyu .pt-photo-wrap{position:relative;}
+#print-taiou .pt-photo-wrap img,#print-kyukyu .pt-photo-wrap img{width:100%;height:55mm;object-fit:cover;border:0.5pt solid #999;display:block;}
+#print-taiou .pt-photo-num,#print-kyukyu .pt-photo-num{font-size:8pt;font-weight:700;color:#fff;background:rgba(0,0,0,.65);padding:1px 6px;position:absolute;top:0;left:0;line-height:1.6;}
+#print-taiou .pt-photo-cap,#print-kyukyu .pt-photo-cap{font-size:7.5pt;text-align:center;color:#333;}
+#print-kyukyu .pk-urgent{text-align:center;font-size:9pt;color:#a32d2d;font-weight:700;margin-bottom:4mm;letter-spacing:.1em;}
+#print-kyukyu .pk-sign-cell{display:flex;align-items:center;gap:3mm;}
+
+</style>
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div id="login-screen">
+  <div class="login-bg-orb orb1"></div>
+  <div class="login-bg-orb orb2"></div>
+  <div class="login-card" id="login-card">
+    <div class="login-badge">水処理設備 管理システム</div>
+    <div class="login-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 26 26" fill="none">
+          <path d="M3 19 Q13 5 23 19" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="13" cy="19" r="3" fill="#fff"/>
+          <path d="M7 15 Q13 9 19 15" stroke="rgba(255,255,255,.5)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="login-company">W-TEC</span>
+    </div>
+    <div class="login-sub">BUSINESS PORTAL</div>
+
+    <div id="step-user">
+      <div class="step-label">ユーザーを選択</div>
+      <div class="user-grid" id="user-grid"></div>
+    </div>
+
+    <div id="pin-section">
+      <div class="step-label" id="pin-label">PINを入力</div>
+      <div class="pin-dots">
+        <div class="pin-dot" id="pd0"></div>
+        <div class="pin-dot" id="pd1"></div>
+        <div class="pin-dot" id="pd2"></div>
+        <div class="pin-dot" id="pd3"></div>
+      </div>
+      <div class="pin-keypad">
+        <button class="pin-key" onclick="pinKey('1')">1</button>
+        <button class="pin-key" onclick="pinKey('2')">2</button>
+        <button class="pin-key" onclick="pinKey('3')">3</button>
+        <button class="pin-key" onclick="pinKey('4')">4</button>
+        <button class="pin-key" onclick="pinKey('5')">5</button>
+        <button class="pin-key" onclick="pinKey('6')">6</button>
+        <button class="pin-key" onclick="pinKey('7')">7</button>
+        <button class="pin-key" onclick="pinKey('8')">8</button>
+        <button class="pin-key" onclick="pinKey('9')">9</button>
+        <button class="pin-key" style="font-size:13px;" onclick="pinKey('C')">C</button>
+        <button class="pin-key" onclick="pinKey('0')">0</button>
+        <button class="pin-key" style="font-size:13px;" onclick="pinKey('⌫')">⌫</button>
+      </div>
+      <div class="pin-error" id="pin-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- アプリ本体 -->
+<div id="app">
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 26 26" fill="none">
+          <path d="M3 19 Q13 5 23 19" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="13" cy="19" r="3" fill="#fff"/>
+          <path d="M7 15 Q13 9 19 15" stroke="rgba(255,255,255,.5)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="sb-company">W-TEC</span>
+    </div>
+    <div class="nav-sec">メイン</div>
+    <button class="nav-item active" id="nav-dashboard" onclick="goPage('dashboard')">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="10" y="2" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="2" y="10" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="10" y="10" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
+      ダッシュボード
+    </button>
+    <div class="nav-sec">業務</div>
+    <button class="nav-item" id="nav-water" onclick="goPage('water')">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none"><path d="M9 2 Q9 8 5 12 A4 4 0 0 0 13 12 Q9 8 9 2Z" fill="currentColor"/></svg>
+      水処理対応管理
+    </button>
+    <button class="nav-item" id="nav-daily" onclick="goPage('daily')">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M6 2v4M12 2v4M5 10h8M5 13h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      日報・作業報告
+    </button>
+    <button class="nav-item" id="nav-schedule" onclick="goPage('schedule')">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M9 5v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      スケジュール
+    </button>
+    <button class="nav-item" id="nav-sales" onclick="goPage('sales')">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none"><path d="M2 14L6 9L10 11L16 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      売上・原価管理
+    </button>
+    <div class="nav-sec">設定</div>
+    <button class="nav-item" id="nav-users" onclick="goPage('users')">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none"><circle cx="7" cy="6" r="2.5" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M2 14c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M13 8v6M10 11h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      ユーザー管理
+    </button>
+    <div class="sb-footer">
+      <div class="user-chip">
+        <div class="user-av" id="sb-av">管</div>
+        <div><div class="user-name" id="sb-name">管理者</div><div class="user-role">W-TEC</div></div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2H2.5A1.5 1.5 0 001 3.5v7A1.5 1.5 0 002.5 12H5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M9 4l3 3-3 3M12 7H5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ログアウト
+      </button>
+    </div>
+  </nav>
+
+  <div class="main" id="main-content">
+    <div class="topbar">
+      <div class="topbar-l">
+        <div class="menu-btn" onclick="toggleSidebar()"><span></span><span></span><span></span></div>
+        <span class="page-title" id="page-title">ダッシュボード</span>
+      </div>
+      <div class="topbar-r">
+        <span><span class="sync-dot"></span>オンライン</span>
+        <span id="topbar-date"></span>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- ダッシュボード -->
+      <div class="page active" id="page-dashboard">
+        <div style="margin-bottom:1.25rem;">
+          <div style="font-size:20px;font-weight:700;" id="dash-greeting">こんにちは</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:2px;" id="dash-sub">今日もよろしくお願いします</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card blue"><div class="stat-label">今月の対応件数</div><div class="stat-value" id="st-month">0</div><div class="stat-sub">件</div></div>
+          <div class="stat-card red"><div class="stat-label">緊急対応</div><div class="stat-value" id="st-emg" style="color:var(--red)">0</div><div class="stat-sub">件（今月）</div></div>
+          <div class="stat-card"><div class="stat-label">登録顧客数</div><div class="stat-value" id="st-cust">0</div><div class="stat-sub">社</div></div>
+          <div class="stat-card"><div class="stat-label">ユーザー数</div><div class="stat-value" id="st-users">3</div><div class="stat-sub">名</div></div>
+        </div>
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-card-hdr">最近の対応<span class="dash-more" onclick="goPage('water');setTimeout(()=>goWt('history'),50)">すべて →</span></div>
+            <div id="dash-records"><div class="empty">記録がありません</div></div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-hdr">モジュール</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div class="mod-card" onclick="goPage('water')"><div class="mod-icon" style="background:rgba(15,163,127,.15);">💧</div><div class="mod-name">水処理管理</div></div>
+              <div class="mod-card" onclick="goPage('daily')"><div class="mod-icon" style="background:rgba(30,111,191,.15);">📋</div><div class="mod-name">日報</div></div>
+              <div class="mod-card" onclick="goPage('schedule')"><div class="mod-icon" style="background:rgba(232,160,32,.12);">📅</div><div class="mod-name">スケジュール</div></div>
+              <div class="mod-card" onclick="goPage('sales')"><div class="mod-icon" style="background:rgba(74,144,208,.15);">📊</div><div class="mod-name">売上管理</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 水処理 -->
+      <div class="page" id="page-water">
+        <div class="wt-layout">
+          <div class="wt-subnav">
+            <button class="wt-nav-btn active" id="wtsub-record" onclick="goWt('record')">新規入力</button>
+            <button class="wt-nav-btn" id="wtsub-history" onclick="goWt('history')">対応履歴</button>
+            <button class="wt-nav-btn" id="wtsub-reports" onclick="goWt('reports')">点検報告書</button>
+            <button class="wt-nav-btn" id="wtsub-master" onclick="goWt('master')">顧客マスタ</button>
+          </div>
+          <div class="wt-content">
+            <div class="wt-page active" id="wt-record">
+<div class="wt-card">
+  <div class="wt-card-title">対応記録の入力</div>
+  <div class="g2" style="margin-bottom:10px;">
+    <div class="fg"><label>日付</label><input type="date" id="r-date"></div>
+    <div class="fg"><label>対応区分</label>
+      <div class="type-row">
+        <button class="tbtn e" id="tb-e" onclick="setType('e')">緊急</button>
+        <button class="tbtn" id="tb-n" onclick="setType('n')">通常</button>
+        <button class="tbtn" id="tb-i" onclick="setType('i')">点検</button>
+      </div>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:10px;">
+    <div class="fg"><label>顧客名</label>
+      <select id="r-cust" onchange="onCustChange()"><option value="">マスタから選択</option></select>
+      <span class="hint">未登録は顧客マスタから先に登録</span>
+    </div>
+    <div class="fg"><label>現場名</label>
+      <select id="r-site" onchange="onSiteChange()"><option value="">顧客を先に選択</option></select>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:10px;">
+    <div class="fg"><label>設備</label>
+      <select id="r-equip"><option value="">現場を先に選択</option></select>
+    </div>
+    <div class="fg"><label>作業種</label>
+      <select id="r-wtype">
+        <option value="">選択</option>
+        <option>定期点検</option><option>修理・修繕</option><option>部品交換</option>
+        <option>清掃</option><option>調整・設定変更</option><option>緊急対応</option>
+        <option>メーター検針</option><option>水質検査</option><option>その他</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:10px;">
+    <div class="fg"><label>作業箇所</label><input type="text" id="r-loc" placeholder="例：第1ポンプ室"></div>
+    <div class="fg"><label>担当者</label><input type="text" id="r-worker" placeholder="担当者名"></div>
+  </div>
+  <div class="fg" style="margin-bottom:10px;">
+    <label>作業内容</label>
+    <textarea id="r-content" placeholder="対応内容・確認事項・引き継ぎ事項など"></textarea>
+  </div>
+  <div class="divider">
+    <div class="sec-label">売上区分</div>
+    <div class="type-row">
+      <button class="sbtn yes" id="sb-yes" onclick="setSales('yes')">売上あり</button>
+      <button class="sbtn" id="sb-no" onclick="setSales('no')">売上なし</button>
+    </div>
+  </div>
+  <div class="fg" style="margin-bottom:10px;margin-top:10px;">
+    <label>備考</label>
+    <textarea id="r-note" placeholder="特記事項・社内メモ" style="min-height:52px;"></textarea>
+  </div>
+  <div class="g2">
+    <div class="fg"><label>次回予定日</label><input type="date" id="r-next-date"></div>
+    <div class="fg"><label>次回作業</label><input type="text" id="r-next-work" placeholder="例：部品交換予定"></div>
+  </div>
+
+  <!-- 緊急追加フィールド -->
+  <div id="emergency-fields" style="display:none;">
+    <div class="divider">
+      <div class="sec-label" style="color:#f08080;">緊急報告書 追加情報</div>
+      <div class="g2" style="margin-bottom:10px;">
+        <div class="fg"><label>発生日時</label><input type="datetime-local" id="r-occur"></div>
+        <div class="fg"><label>発見者</label><input type="text" id="r-finder" placeholder="発見者名"></div>
+      </div>
+      <div class="fg" style="margin-bottom:10px;"><label>異常の内容・原因</label><textarea id="r-cause" placeholder="異常の内容・原因"></textarea></div>
+      <div class="fg" style="margin-bottom:10px;"><label>対応処置</label><textarea id="r-action" placeholder="実施した処置"></textarea></div>
+      <div class="g2" style="margin-bottom:10px;">
+        <div class="fg"><label>復旧日時</label><input type="datetime-local" id="r-restore"></div>
+        <div class="fg"><label>復旧状況</label><input type="text" id="r-restore-status" placeholder="例：正常稼働に復帰"></div>
+      </div>
+      <div class="fg"><label>再発防止策</label><textarea id="r-prevention" placeholder="再発防止策"></textarea></div>
+    </div>
+  </div>
+  <!-- 写真添付 -->
+  <div class="divider">
+    <div class="sec-label">写真添付（任意）</div>
+    <div class="photo-area">
+      <div>
+        <div class="photo-cat-label">作業前</div>
+        <div class="photo-slots" id="slots-before"></div>
+        <label class="add-dashed" style="margin-top:4px;cursor:pointer;">
+          <input type="file" accept="image/*,.heic,.HEIC" multiple style="display:none" onchange="addPhotos('before',this)">+ 写真を追加
+        </label>
+      </div>
+      <div>
+        <div class="photo-cat-label">作業中</div>
+        <div class="photo-slots" id="slots-during"></div>
+        <label class="add-dashed" style="margin-top:4px;cursor:pointer;">
+          <input type="file" accept="image/*,.heic,.HEIC" multiple style="display:none" onchange="addPhotos('during',this)">+ 写真を追加
+        </label>
+      </div>
+      <div>
+        <div class="photo-cat-label">作業後</div>
+        <div class="photo-slots" id="slots-after"></div>
+        <label class="add-dashed" style="margin-top:4px;cursor:pointer;">
+          <input type="file" accept="image/*,.heic,.HEIC" multiple style="display:none" onchange="addPhotos('after',this)">+ 写真を追加
+        </label>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:12px;">
+    <button class="btn-full" style="flex:1;" onclick="saveRec()">対応記録を保存</button>
+    <button class="btn-outline teal" style="padding:10px 14px;white-space:nowrap;" onclick="printReportCurrent()">報告書を印刷</button>
+  </div>
+</div>
+</div>
+            <div class="wt-page" id="wt-history">
+<div class="wt-stats">
+  <div class="wt-stat"><div class="wt-stat-l">総件数</div><div class="wt-stat-v" id="wst-total">0</div></div>
+  <div class="wt-stat"><div class="wt-stat-l">緊急</div><div class="wt-stat-v" id="wst-e" style="color:var(--red)">0</div></div>
+  <div class="wt-stat"><div class="wt-stat-l">通常</div><div class="wt-stat-v" id="wst-n" style="color:var(--blue3)">0</div></div>
+  <div class="wt-stat"><div class="wt-stat-l">点検</div><div class="wt-stat-v" id="wst-i" style="color:var(--teal2)">0</div></div>
+</div>
+<div class="search-row">
+  <input type="text" id="h-q" placeholder="顧客・現場・内容で検索" oninput="renderHist()" style="flex:1;min-width:160px;">
+  <select id="h-cf" onchange="renderHist()" style="min-width:120px;"><option value="">すべての顧客</option></select>
+  <select id="h-tf" onchange="renderHist()" style="min-width:90px;">
+    <option value="">すべて</option><option value="e">緊急</option><option value="n">通常</option><option value="i">点検</option>
+  </select>
+  <select id="h-sf" onchange="renderHist()" style="min-width:100px;">
+    <option value="">売上すべて</option><option value="yes">売上あり</option><option value="no">売上なし</option>
+  </select>
+  <button class="btn-outline" onclick="exportCSV()">CSV出力</button>
+</div>
+<div id="hist-list"></div>
+</div>
+            <div class="wt-page" id="wt-reports">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+  <div style="font-size:14px;font-weight:600;">保存済み点検報告書</div>
+  <button class="btn-full" style="width:auto;margin-top:0;padding:8px 16px;" onclick="alert('対応履歴の「点検」記録から作成できます')">+ 新規作成</button>
+</div>
+<div id="report-list"><div class="empty-state">保存済みの報告書がありません</div></div>
+</div>
+            <div class="wt-page" id="wt-master">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+  <div style="display:flex;gap:8px;">
+    <div class="wt-stat" style="padding:.5rem .75rem;"><div class="wt-stat-l">顧客</div><div style="font-size:16px;font-weight:700;" id="ms-cc">0</div></div>
+    <div class="wt-stat" style="padding:.5rem .75rem;"><div class="wt-stat-l">現場</div><div style="font-size:16px;font-weight:700;" id="ms-sc">0</div></div>
+    <div class="wt-stat" style="padding:.5rem .75rem;"><div class="wt-stat-l">設備</div><div style="font-size:16px;font-weight:700;" id="ms-ec">0</div></div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn-outline" onclick="importCustomers()">一括インポート</button>
+    <button class="btn-full" style="width:auto;margin-top:0;padding:8px 16px;" onclick="openCustModal()">+ 顧客追加</button>
+  </div>
+</div>
+<input type="text" id="ms-q" placeholder="顧客名・現場名で検索" oninput="renderMaster()"
+  style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;margin-bottom:1rem;">
+<div id="master-list"></div>
+</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 日報 -->
+      <div class="page" id="page-daily">
+        <div class="coming-soon"><div class="coming-icon">📋</div><h2>日報・作業報告</h2><p>日付・作業場所・作業内容・所要時間の記録。次のステップで実装します。</p></div>
+      </div>
+      <!-- スケジュール -->
+      <div class="page" id="page-schedule">
+        <!-- 未ログイン時 -->
+        <div id="gcal-login-area" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2rem;text-align:center;">
+          <div style="font-size:40px;margin-bottom:1rem;opacity:.6;">📅</div>
+          <div style="font-size:16px;font-weight:600;margin-bottom:.5rem;">Googleカレンダーと連携</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:1.5rem;">Googleアカウントでログインして予定を表示・追加できます</div>
+          <button id="gcal-signin-btn" class="btn-p" style="padding:12px 28px;font-size:14px;" onclick="gcalSignIn()">
+            Googleでログイン
+          </button>
+        </div>
+        <!-- ログイン済み -->
+        <div id="gcal-main-area" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button class="btn-s" onclick="gcalPrev()">◀</button>
+              <div style="font-size:15px;font-weight:600;" id="gcal-month-label"></div>
+              <button class="btn-s" onclick="gcalNext()">▶</button>
+              <button class="btn-s" onclick="gcalGoToday()">今日</button>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-p" onclick="gcalOpenAddModal()">＋ 予定を追加</button>
+              <button class="btn-s" onclick="gcalSignOut()" style="font-size:12px;">ログアウト</button>
+            </div>
+          </div>
+          <!-- カレンダーグリッド -->
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border);">
+              <div style="padding:.5rem;text-align:center;font-size:12px;color:var(--red);font-weight:600;">日</div>
+              <div style="padding:.5rem;text-align:center;font-size:12px;color:var(--text2);font-weight:600;">月</div>
+              <div style="padding:.5rem;text-align:center;font-size:12px;color:var(--text2);font-weight:600;">火</div>
+              <div style="padding:.5rem;text-align:center;font-size:12px;color:var(--text2);font-weight:600;">水</div>
+              <div style="padding:.5rem;text-align:center;font-size:12px;color:var(--text2);font-weight:600;">木</div>
+              <div style="padding:.5rem;text-align:center;font-size:12px;color:var(--text2);font-weight:600;">金</div>
+              <div style="padding:.5rem;text-align:center;font-size:12px;color:var(--blue3);font-weight:600;">土</div>
+            </div>
+            <div id="gcal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);"></div>
+          </div>
+          <!-- 直近の予定リスト -->
+          <div style="margin-top:1.25rem;">
+            <div style="font-size:13px;font-weight:600;margin-bottom:.75rem;">直近の予定</div>
+            <div id="gcal-upcoming"></div>
+          </div>
+        </div>
+      </div>
+      <!-- 売上 -->
+      <div class="page" id="page-sales">
+        <div class="coming-soon"><div class="coming-icon">📊</div><h2>売上・原価管理</h2><p>月次集計・案件別収支を管理します。</p></div>
+      </div>
+      <!-- ユーザー管理 -->
+      <div class="page" id="page-users">
+        <div class="form-card">
+          <h3>ユーザー管理</h3>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:1rem;">名前とPIN（4桁）を設定してください</div>
+          <div id="user-list"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn-s" onclick="addUser()">+ 追加</button>
+            <button class="btn-p" onclick="saveUsers()">保存</button>
+          </div>
+        </div>
+        <div class="form-card" style="margin-top:1rem;">
+          <h3>ログアウト</h3>
+          <button class="btn-s" onclick="doLogout()" style="width:100%;margin-top:.5rem;">ログアウト</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+
+
+// ===== Googleカレンダー連携 =====
+const GCAL_CLIENT_ID = '712508536556-1mam1lm0ah5njkcj6gl05s4etjd6uot3.apps.googleusercontent.com';
+const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar';
+let gcalTokenClient = null;
+let gcalAccessToken = null;
+let gcalCalendars = [];
+let gcalEvents = [];
+let gcalCurrentDate = new Date();
+
+function gcalInit(){
+  google.accounts.id.initialize({client_id: GCAL_CLIENT_ID});
+  gcalTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL_CLIENT_ID,
+    scope: GCAL_SCOPES,
+    callback: (resp) => {
+      if(resp.error) { alert('ログインに失敗しました: ' + resp.error); return; }
+      gcalAccessToken = resp.access_token;
+      document.getElementById('gcal-login-area').style.display = 'none';
+      document.getElementById('gcal-main-area').style.display = 'block';
+      gcalLoadCalendars().then(()=>gcalRenderMonth());
+    }
+  });
+}
+
+function gcalSignIn(){
+  if(!gcalTokenClient){ alert('Google APIの読み込み中です。少し待ってから再試行してください。'); return; }
+  gcalTokenClient.requestAccessToken();
+}
+
+function gcalSignOut(){
+  if(gcalAccessToken) google.accounts.oauth2.revoke(gcalAccessToken, ()=>{});
+  gcalAccessToken = null;
+  document.getElementById('gcal-login-area').style.display = 'flex';
+  document.getElementById('gcal-main-area').style.display = 'none';
+}
+
+async function gcalFetch(url){
+  const res = await fetch(url, {headers: {Authorization: 'Bearer ' + gcalAccessToken}});
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function gcalLoadCalendars(){
+  try{
+    const data = await gcalFetch('https://www.googleapis.com/calendar/v3/users/me/calendarList');
+    gcalCalendars = data.items || [];
+    const sel = document.getElementById('gcal-cal-select');
+    if(sel){
+      sel.innerHTML = gcalCalendars.map(c =>
+        `<option value="${c.id}">${c.summary}</option>`
+      ).join('');
+    }
+  }catch(e){ console.error('カレンダー一覧取得失敗:', e); }
+}
+
+async function gcalLoadEvents(){
+  if(!gcalAccessToken) return;
+  const year = gcalCurrentDate.getFullYear();
+  const month = gcalCurrentDate.getMonth();
+  const start = new Date(year, month, 1).toISOString();
+  const end = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+  gcalEvents = [];
+  try{
+    for(const cal of gcalCalendars){
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events?timeMin=${start}&timeMax=${end}&singleEvents=true&orderBy=startTime&maxResults=100`;
+      const data = await gcalFetch(url);
+      (data.items || []).forEach(ev => {
+        ev._calColor = cal.backgroundColor || '#4a90d0';
+        ev._calName = cal.summary;
+        gcalEvents.push(ev);
+      });
+    }
+    gcalEvents.sort((a,b) => {
+      const ta = a.start?.dateTime || a.start?.date || '';
+      const tb = b.start?.dateTime || b.start?.date || '';
+      return ta.localeCompare(tb);
+    });
+  }catch(e){ console.error('イベント取得失敗:', e); }
+  gcalRenderGrid();
+  gcalRenderUpcoming();
+}
+
+function gcalRenderMonth(){
+  const year = gcalCurrentDate.getFullYear();
+  const month = gcalCurrentDate.getMonth();
+  const lbl = document.getElementById('gcal-month-label');
+  if(lbl) lbl.textContent = `${year}年${month+1}月`;
+  gcalLoadEvents();
+}
+
+function gcalRenderGrid(){
+  const year = gcalCurrentDate.getFullYear();
+  const month = gcalCurrentDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  const grid = document.getElementById('gcal-grid');
+  if(!grid) return;
+  let cells = '';
+  for(let i = 0; i < firstDay; i++){
+    cells += '<div style="min-height:70px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px;opacity:.3;"></div>';
+  }
+  for(let d = 1; d <= daysInMonth; d++){
+    const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===d;
+    const dow = (firstDay + d - 1) % 7;
+    const color = dow===0?'var(--red)':dow===6?'var(--blue3)':'var(--text)';
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayEvs = gcalEvents.filter(ev=>{
+      const s = ev.start?.date || ev.start?.dateTime?.slice(0,10) || '';
+      return s === dateStr;
+    });
+    const evHtml = dayEvs.slice(0,3).map(ev=>
+      `<div style="font-size:10px;background:${ev._calColor}22;border-left:2px solid ${ev._calColor};padding:1px 4px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;cursor:pointer;" title="${ev.summary}" onclick="gcalShowEvent('${ev.id}')">
+        ${ev.summary||'（無題）'}
+      </div>`
+    ).join('');
+    const moreHtml = dayEvs.length > 3 ? `<div style="font-size:10px;color:var(--text3);">+${dayEvs.length-3}件</div>` : '';
+    cells += `<div style="min-height:70px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px;${isToday?'background:rgba(30,111,191,.08);':''}">
+      <div style="font-size:12px;font-weight:${isToday?'700':'400'};color:${color};${isToday?'background:var(--blue2);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;':''}">${d}</div>
+      ${evHtml}${moreHtml}
+    </div>`;
+  }
+  grid.innerHTML = cells;
+}
+
+function gcalRenderUpcoming(){
+  const now = new Date();
+  const upcoming = gcalEvents.filter(ev=>{
+    const s = ev.start?.dateTime || ev.start?.date;
+    return s && new Date(s) >= now;
+  }).slice(0, 8);
+  const el = document.getElementById('gcal-upcoming');
+  if(!el) return;
+  if(!upcoming.length){ el.innerHTML='<div class="empty-state">今月の予定はありません</div>'; return; }
+  el.innerHTML = upcoming.map(ev=>{
+    const s = ev.start?.dateTime || ev.start?.date || '';
+    const d = new Date(s);
+    const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
+    const timeStr = ev.start?.dateTime ? ` ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}` : ' 終日';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:.6rem 0;border-bottom:1px solid var(--border);">
+      <div style="width:3px;height:36px;border-radius:2px;background:${ev._calColor};flex-shrink:0;"></div>
+      <div style="min-width:60px;font-size:12px;color:var(--text2);">${dateStr}${timeStr}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;">${ev.summary||'（無題）'}</div>
+        ${ev.location?`<div style="font-size:11px;color:var(--text2);">📍${ev.location}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  // ダッシュボードの今週の予定数も更新
+  const weekLater = new Date(now.getTime() + 7*24*60*60*1000);
+  const weekEvs = gcalEvents.filter(ev=>{
+    const s = new Date(ev.start?.dateTime||ev.start?.date||0);
+    return s >= now && s <= weekLater;
+  });
+  const ss = document.getElementById('st-schedule');
+  if(ss) ss.textContent = weekEvs.length;
+}
+
+function gcalShowEvent(id){
+  const ev = gcalEvents.find(x=>x.id===id);
+  if(!ev) return;
+  const s = ev.start?.dateTime||ev.start?.date||'';
+  const e = ev.end?.dateTime||ev.end?.date||'';
+  alert(`${ev.summary||'（無題）'}\n\n日時: ${s} ～ ${e}${ev.location?'\n場所: '+ev.location:''}${ev.description?'\n\n'+ev.description:''}`);
+}
+
+function gcalPrev(){ gcalCurrentDate.setMonth(gcalCurrentDate.getMonth()-1); gcalRenderMonth(); }
+function gcalNext(){ gcalCurrentDate.setMonth(gcalCurrentDate.getMonth()+1); gcalRenderMonth(); }
+function gcalGoToday(){ gcalCurrentDate = new Date(); gcalRenderMonth(); }
+
+function gcalOpenAddModal(){
+  const now = new Date();
+  const pad = n=>String(n).padStart(2,'0');
+  const dt = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:00`;
+  const dte = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours()+1)}:00`;
+  document.getElementById('gcal-title').value='';
+  document.getElementById('gcal-start').value=dt;
+  document.getElementById('gcal-end').value=dte;
+  document.getElementById('gcal-location').value='';
+  document.getElementById('gcal-desc').value='';
+  openModal('modal-gcal-add');
+}
+
+async function gcalAddEvent(){
+  const title = document.getElementById('gcal-title')?.value.trim();
+  const start = document.getElementById('gcal-start')?.value;
+  const end = document.getElementById('gcal-end')?.value;
+  const calId = document.getElementById('gcal-cal-select')?.value || 'primary';
+  if(!title||!start){ alert('タイトルと開始日時は必須です'); return; }
+  const event = {
+    summary: title,
+    location: document.getElementById('gcal-location')?.value||'',
+    description: document.getElementById('gcal-desc')?.value||'',
+    start: {dateTime: new Date(start).toISOString(), timeZone: 'Asia/Tokyo'},
+    end: {dateTime: new Date(end||start).toISOString(), timeZone: 'Asia/Tokyo'}
+  };
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events`,
+      {method:'POST', headers:{'Authorization':'Bearer '+gcalAccessToken,'Content-Type':'application/json'}, body: JSON.stringify(event)}
+    );
+    if(!res.ok) throw new Error(await res.text());
+    closeModal('modal-gcal-add');
+    alert('予定を追加しました！');
+    gcalLoadEvents();
+  }catch(e){ alert('追加に失敗しました: '+e.message); }
+}
+
+// Google API 読み込み完了後に初期化
+window.addEventListener('load', ()=>{
+  const check = setInterval(()=>{
+    if(typeof google !== 'undefined' && google.accounts){
+      clearInterval(check);
+      gcalInit();
+    }
+  }, 300);
+});
+
+// ===== 水処理モジュール =====
+let wt_customers=[],wt_records=[],wt_editCustId=null,wt_selType='e',wt_selSales='yes';
+const WT_TL={e:'緊急',n:'通常',i:'点検'};
+const uid=()=>Date.now()+Math.random().toString(36).slice(2,6);
+const today=()=>new Date().toISOString().split('T')[0];
+
+// ロード
+(function wtLoad(){
+  try{const d=localStorage.getItem('wt_c');if(d)wt_customers=JSON.parse(d);}catch(e){}
+  try{const d=localStorage.getItem('wt_r');if(d)wt_records=JSON.parse(d);}catch(e){}
+})();
+function wtSaveC(){try{localStorage.setItem('wt_c',JSON.stringify(wt_customers));}catch(e){}}
+function wtSaveR(){try{localStorage.setItem('wt_r',JSON.stringify(wt_records));}catch(e){}}
+
+// 対応入力初期化
+function wtInitRecord(){
+  const d=document.getElementById('r-date');if(d&&!d.value)d.value=today();
+  setType('e');setSales('yes');
+  populateCustSel();
+}
+function setType(t){
+  wt_selType=t;
+  ['e','n','i'].forEach(x=>{const b=document.getElementById('tb-'+x);if(b)b.className='tbtn'+(x===t?' '+x:'');});
+  const ef=document.getElementById('emergency-fields');if(ef)ef.style.display=t==='e'?'block':'none';
+}
+function setSales(v){
+  wt_selSales=v;
+  const by=document.getElementById('sb-yes');const bn=document.getElementById('sb-no');
+  if(by)by.className='sbtn'+(v==='yes'?' yes':'');
+  if(bn)bn.className='sbtn'+(v==='no'?' no':'');
+}
+function populateCustSel(){
+  const sel=document.getElementById('r-cust');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">マスタから選択</option>';
+  wt_customers.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
+  if(cur)sel.value=cur;
+  onCustChange();
+}
+function onCustChange(){
+  const cid=document.getElementById('r-cust')?.value;
+  const ss=document.getElementById('r-site');
+  if(ss){ss.innerHTML='<option value="">現場を選択</option>';}
+  document.getElementById('r-equip')?.parentElement&&(document.getElementById('r-equip').innerHTML='<option value="">現場を先に選択</option>');
+  if(!cid)return;
+  const c=wt_customers.find(x=>x.id===cid);if(!c)return;
+  c.sites.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;ss.appendChild(o);});
+  onSiteChange();
+}
+function onSiteChange(){
+  const cid=document.getElementById('r-cust')?.value;
+  const sid=document.getElementById('r-site')?.value;
+  const es=document.getElementById('r-equip');
+  if(es)es.innerHTML='<option value="">設備を選択（任意）</option>';
+  if(!cid||!sid)return;
+  const c=wt_customers.find(x=>x.id===cid);if(!c)return;
+  const s=c.sites.find(x=>x.id===sid);if(!s)return;
+  s.equips.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent=e.name+(e.model?' ('+e.model+')':'');es.appendChild(o);});
+}
+function saveRec(){
+  const cid=document.getElementById('r-cust')?.value;
+  const date=document.getElementById('r-date')?.value;
+  if(!cid||!date){alert('日付と顧客は必須です');return;}
+  const c=wt_customers.find(x=>x.id===cid);
+  const sid=document.getElementById('r-site')?.value;
+  const s=c?.sites.find(x=>x.id===sid);
+  const eid=document.getElementById('r-equip')?.value;
+  const eq=s?.equips.find(x=>x.id===eid);
+  const rec={
+    id:uid(),date,type:wt_selType,sales:wt_selSales,
+    custId:cid,custName:c?.name||'',siteId:sid,siteName:s?.name||'',
+    equipId:eid,equipName:eq?.name||'',
+    workType:document.getElementById('r-wtype')?.value||'',
+    location:document.getElementById('r-loc')?.value||'',
+    worker:document.getElementById('r-worker')?.value||me?.name||'',
+    content:document.getElementById('r-content')?.value||'',
+    note:document.getElementById('r-note')?.value||'',
+    nextDate:document.getElementById('r-next-date')?.value||'',
+    nextWork:document.getElementById('r-next-work')?.value||'',
+    occurTime:document.getElementById('r-occur')?.value||'',
+    finder:document.getElementById('r-finder')?.value||'',
+    cause:document.getElementById('r-cause')?.value||'',
+    action:document.getElementById('r-action')?.value||'',
+    restoreTime:document.getElementById('r-restore')?.value||'',
+    restoreStatus:document.getElementById('r-restore-status')?.value||'',
+    prevention:document.getElementById('r-prevention')?.value||'',
+    photos:hasPhotos()?JSON.parse(JSON.stringify(photoStore)):null
+  };
+  wt_records.unshift(rec);wtSaveR();
+  ['r-loc','r-content','r-note','r-next-date','r-next-work'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('r-wtype').value='';
+  document.getElementById('r-date').value=today();
+  clearPhotos();
+  ['r-occur','r-finder','r-cause','r-action','r-restore','r-restore-status','r-prevention'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  setType('e');setSales('yes');
+  alert('保存しました');
+  goWt('history');
+}
+
+// 対応履歴
+function renderHist(){
+  const q=(document.getElementById('h-q')?.value||'').toLowerCase();
+  const cf=document.getElementById('h-cf')?.value||'';
+  const tf=document.getElementById('h-tf')?.value||'';
+  const sf=document.getElementById('h-sf')?.value||'';
+  // 顧客フィルタ更新
+  const hcf=document.getElementById('h-cf');
+  if(hcf){const v=hcf.value;hcf.innerHTML='<option value="">すべての顧客</option>';wt_customers.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;hcf.appendChild(o);});hcf.value=v;}
+  const list=wt_records.filter(r=>{
+    if(cf&&r.custId!==cf)return false;
+    if(tf&&r.type!==tf)return false;
+    if(sf&&r.sales!==sf)return false;
+    if(q&&!(r.custName+r.siteName+r.content+r.workType+r.location+r.note).toLowerCase().includes(q))return false;
+    return true;
+  });
+  const setV=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setV('wst-total',wt_records.length);
+  setV('wst-e',wt_records.filter(r=>r.type==='e').length);
+  setV('wst-n',wt_records.filter(r=>r.type==='n').length);
+  setV('wst-i',wt_records.filter(r=>r.type==='i').length);
+  const el=document.getElementById('hist-list');if(!el)return;
+  if(!list.length){el.innerHTML='<div class="empty-state">対応記録がありません</div>';return;}
+  el.innerHTML=list.map(r=>`
+    <div class="rec" onclick="openDetail('${r.id}')">
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <span class="wt-badge wb-${r.type}">${WT_TL[r.type]||''}</span>
+        <span class="wt-badge wb-s${r.sales==='yes'?'y':'n'}">${r.sales==='yes'?'売上あり':'売上なし'}</span>
+      </div>
+      <div class="rec-main">
+        <div class="rec-title">${r.custName||'—'}${r.siteName?' / '+r.siteName:''}</div>
+        <div class="rec-sub">${[r.workType,r.equipName,r.location].filter(Boolean).join(' · ')}${r.content?' — '+r.content.slice(0,30)+(r.content.length>30?'…':''):''}</div>
+        ${r.worker?`<div class="rec-sub">担当：${r.worker}</div>`:''}
+      </div>
+      <div class="rec-date">${r.date||''}</div>
+    </div>`).join('');
+}
+function openDetail(id){
+  const r=wt_records.find(x=>x.id===id);if(!r)return;
+  const rows=[['日付',r.date],['区分',`<span class="wt-badge wb-${r.type}">${WT_TL[r.type]}</span>`],
+    ['売上',`<span class="wt-badge wb-s${r.sales==='yes'?'y':'n'}">${r.sales==='yes'?'売上あり':'売上なし'}</span>`],
+    ['顧客',r.custName||'—'],['現場',r.siteName||'—'],['設備',r.equipName||'—'],
+    ['作業種',r.workType||'—'],['作業箇所',r.location||'—'],['担当者',r.worker||'—'],
+    ['作業内容',r.content||'—'],['備考',r.note||'—'],
+    ['次回予定',r.nextDate||'—'],['次回作業',r.nextWork||'—']];
+  const dc=document.getElementById('detail-content');
+  if(dc)dc.innerHTML=rows.map(([k,v])=>`<div class="drow"><span class="dk">${k}</span><span>${v}</span></div>`).join('')+
+    `<div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap;">
+      <button class="btn-outline teal" style="flex:1;" onclick="printReportFromRecord('${id}')">🖨 報告書を印刷</button>
+      <button class="btn-outline danger" onclick="deleteRec('${id}')">削除</button>
+    </div>`;
+  openModal('modal-detail');
+}
+function deleteRec(id){
+  if(!confirm('削除しますか？'))return;
+  wt_records=wt_records.filter(r=>r.id!==id);
+  wtSaveR();closeModal('modal-detail');renderHist();
+}
+
+// CSV出力
+function exportCSV(){
+  const TL={e:'緊急',n:'通常',i:'点検'};
+  const SL={yes:'売上あり',no:'売上なし'};
+  const hd=['日付','区分','売上','顧客名','現場名','設備名','作業種','作業箇所','担当者','作業内容','備考','次回予定日'];
+  const rows=wt_records.map(r=>[r.date,TL[r.type]||'',SL[r.sales]||'',r.custName,r.siteName,r.equipName,r.workType,r.location,r.worker,(r.content||'').replace(/\n/g,' '),(r.note||'').replace(/\n/g,' '),r.nextDate]);
+  const csv='\uFEFF'+[hd,...rows].map(row=>row.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='対応履歴_'+today().replace(/-/g,'')+'.csv';
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+// 顧客マスタ
+function renderMaster(){
+  const q=(document.getElementById('ms-q')?.value||'').toLowerCase();
+  const list=wt_customers.filter(c=>!q||c.name.toLowerCase().includes(q)||c.sites.some(s=>s.name.toLowerCase().includes(q)));
+  const setV=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setV('ms-cc',wt_customers.length);
+  setV('ms-sc',wt_customers.reduce((a,c)=>a+c.sites.length,0));
+  setV('ms-ec',wt_customers.reduce((a,c)=>a+c.sites.reduce((b,s)=>b+s.equips.length,0),0));
+  const el=document.getElementById('master-list');if(!el)return;
+  if(!list.length){el.innerHTML='<div class="empty-state">顧客が登録されていません</div>';return;}
+  el.innerHTML=list.map(c=>`
+    <div class="cust-card">
+      <div class="cust-hdr" onclick="toggleCust('${c.id}')">
+        <div class="cust-av">${c.name.slice(0,2)}</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:14px;">${c.name}</div>
+          <div style="font-size:12px;color:var(--text2);">${c.address||'住所未登録'} | 現場${c.sites.length}件</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn-outline" style="padding:5px 10px;font-size:12px;" onclick="event.stopPropagation();openEditCust('${c.id}')">編集</button>
+          <button class="btn-outline danger" style="padding:5px 10px;font-size:12px;" onclick="event.stopPropagation();delCust('${c.id}')">削除</button>
+          <span style="font-size:11px;color:var(--text3);" id="cr-${c.id}">▼</span>
+        </div>
+      </div>
+      <div class="cust-body" id="cb-${c.id}">
+        <div class="g2" style="font-size:13px;margin-bottom:.75rem;">
+          ${c.contactName?`<div><span style="color:var(--text2);">担当：</span>${c.contactName}</div>`:''}
+          ${c.tel?`<div><span style="color:var(--text2);">TEL：</span>${c.tel}</div>`:''}
+          ${c.sales?`<div><span style="color:var(--text2);">営業：</span>${c.sales}</div>`:''}
+          ${c.tech?`<div><span style="color:var(--text2);">技術：</span>${c.tech}</div>`:''}
+        </div>
+        ${c.sites.map(s=>`
+          <div class="site-block">
+            <div class="site-hdr">
+              <div style="font-weight:600;font-size:13px;">${s.name}</div>
+              <div style="display:flex;gap:4px;align-items:center;">
+                ${s.cycle?`<span class="cy-tag">${s.cycle}</span>`:''}
+                ${s.contract?`<span class="eq-tag">${s.contract}</span>`:''}
+                <button class="btn-outline danger" style="padding:3px 8px;font-size:11px;" onclick="delSite('${c.id}','${s.id}')">削除</button>
+              </div>
+            </div>
+            ${s.equips.length?`<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">${s.equips.map(e=>`<span class="eq-tag">${e.name}${e.model?' / '+e.model:''}</span>`).join('')}</div>`:''}
+          </div>`).join('')}
+        <button class="add-dashed" onclick="openSiteModal('${c.id}')">+ 現場を追加</button>
+      </div>
+    </div>`).join('');
+}
+function toggleCust(id){
+  const el=document.getElementById('cb-'+id);if(!el)return;
+  el.classList.toggle('open');
+  const cr=document.getElementById('cr-'+id);if(cr)cr.textContent=el.classList.contains('open')?'▲':'▼';
+}
+
+// 顧客CRUD
+function openCustModal(id){
+  wt_editCustId=id||null;
+  const c=id?wt_customers.find(x=>x.id===id):null;
+  const t=document.getElementById('mc-ttl');if(t)t.textContent=c?'顧客を編集':'顧客を追加';
+  ['mc-name','mc-addr','mc-contact','mc-tel','mc-email','mc-sales','mc-tech','mc-note'].forEach(fid=>{
+    const map={name:'mc-name','mc-addr':'address','mc-contact':'contactName','mc-tel':'tel','mc-email':'email','mc-sales':'sales','mc-tech':'tech','mc-note':'note'};
+    const el=document.getElementById(fid);if(el)el.value='';
+  });
+  if(c){
+    document.getElementById('mc-name').value=c.name||'';
+    document.getElementById('mc-addr').value=c.address||'';
+    document.getElementById('mc-contact').value=c.contactName||'';
+    document.getElementById('mc-tel').value=c.tel||'';
+    document.getElementById('mc-email').value=c.email||'';
+    document.getElementById('mc-sales').value=c.sales||'';
+    document.getElementById('mc-tech').value=c.tech||'';
+    document.getElementById('mc-note').value=c.note||'';
+  }
+  openModal('modal-cust');
+}
+function openEditCust(id){openCustModal(id);}
+function saveCust(){
+  const name=document.getElementById('mc-name')?.value.trim();
+  if(!name){alert('顧客名は必須です');return;}
+  const data={name,address:document.getElementById('mc-addr')?.value||'',contactName:document.getElementById('mc-contact')?.value||'',
+    tel:document.getElementById('mc-tel')?.value||'',email:document.getElementById('mc-email')?.value||'',
+    sales:document.getElementById('mc-sales')?.value||'',tech:document.getElementById('mc-tech')?.value||'',
+    note:document.getElementById('mc-note')?.value||''};
+  if(wt_editCustId){Object.assign(wt_customers.find(x=>x.id===wt_editCustId),data);}
+  else{wt_customers.unshift({id:uid(),...data,sites:[]});}
+  wtSaveC();closeModal('modal-cust');renderMaster();populateCustSel();
+}
+function delCust(id){
+  if(!confirm('この顧客を削除しますか？'))return;
+  wt_customers=wt_customers.filter(x=>x.id!==id);
+  wtSaveC();renderMaster();populateCustSel();
+}
+function openSiteModal(cid){
+  document.getElementById('msi-cid').value=cid;
+  ['msi-name','msi-addr','msi-contact','msi-tel','msi-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('msi-contract').value='';document.getElementById('msi-cycle').value='';
+  document.getElementById('eq-inputs').innerHTML=`<div class="sec-label" style="margin-top:.75rem;">設備登録（任意）</div><div class="eq-row g2" style="margin-bottom:8px;"><div class="fg"><label>設備名</label><input type="text" class="eq-n" placeholder="例：沈殿池ポンプ"></div><div class="fg"><label>型番・メーカー</label><input type="text" class="eq-m" placeholder="例：ABC-200 / 日立"></div></div>`;
+  openModal('modal-site');
+}
+function addEqRow(){
+  const d=document.createElement('div');d.className='eq-row g2';d.style.marginBottom='8px';
+  d.innerHTML='<div class="fg"><label>設備名</label><input type="text" class="eq-n" placeholder="設備名"></div><div class="fg"><label>型番・メーカー</label><input type="text" class="eq-m" placeholder="型番・メーカー"></div>';
+  document.getElementById('eq-inputs').appendChild(d);
+}
+function saveSite(){
+  const cid=document.getElementById('msi-cid')?.value;
+  const name=document.getElementById('msi-name')?.value.trim();
+  if(!name){alert('現場名は必須です');return;}
+  const c=wt_customers.find(x=>x.id===cid);if(!c)return;
+  const equips=[];
+  document.querySelectorAll('#eq-inputs .eq-row').forEach(row=>{
+    const n=row.querySelector('.eq-n')?.value.trim();
+    const m=row.querySelector('.eq-m')?.value.trim();
+    if(n)equips.push({id:uid(),name:n,model:m});
+  });
+  c.sites.push({id:uid(),name,address:document.getElementById('msi-addr')?.value||'',
+    contact:document.getElementById('msi-contact')?.value||'',tel:document.getElementById('msi-tel')?.value||'',
+    contract:document.getElementById('msi-contract')?.value||'',cycle:document.getElementById('msi-cycle')?.value||'',
+    note:document.getElementById('msi-note')?.value||'',equips});
+  wtSaveC();closeModal('modal-site');renderMaster();populateCustSel();
+}
+function delSite(cid,sid){
+  if(!confirm('この現場を削除しますか？'))return;
+  const c=wt_customers.find(x=>x.id===cid);
+  if(c)c.sites=c.sites.filter(s=>s.id!==sid);
+  wtSaveC();renderMaster();
+}
+
+// モーダル
+function openModal(id){const el=document.getElementById(id);if(el)el.classList.add('open');}
+function closeModal(id){const el=document.getElementById(id);if(el)el.classList.remove('open');}
+
+// 一括インポート
+const IMPORT_CUSTOMERS=[
+  {name:'株式会社松秀',address:'大分県別府市上人ケ浜町6-24',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',
+    sites:[{name:'AMANERESORT SEIKAI',address:'大分県別府市上人ケ浜町6-24',contact:'ご担当者',tel:'',contract:'',cycle:'',note:'',equips:[]},
+           {name:'AMANERESORT GAHAMA',address:'大分県別府市上人ケ浜町6-24',contact:'ご担当者',tel:'',contract:'',cycle:'',note:'',equips:[]}]},
+  {name:'有限会社ペントハウスクラブ',address:'大分県別府市上人ケ浜町6-24',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'有限会社首藤牧場',address:'大分県大分市丹生',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'フジグロース株式会社',address:'大分県中津市高瀬1016-1',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'株式会社SSコーポレーション',address:'大分県別府市北浜2丁目-9',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'株式会社大分合同折込広告センター',address:'大分県大分市府内町3丁目9-11',contactName:'ご担当者',tel:'097-538-9657',email:'',sales:'',tech:'',note:'総務部',sites:[]},
+  {name:'大成温調株式会社',address:'大阪府大阪市中央区谷町4丁目11-6',contactName:'御担当者',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'株式会社ファインポンプ',address:'大分県別府市扇山6丁目2-2',contactName:'仲野',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'御宿てんにち',address:'大分県由布市湯布院町川上2730-3',contactName:'',tel:'0977-85-2240',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'スマイスセレソンスポーツ保育園',address:'大分県大分市田尻',contactName:'ご担当者',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'有限会社カウファーム藤田',address:'大分県大分市金谷迫',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'木村',address:'大分県別府市上人仲町4-50',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'有限会社釘宮牧場',address:'大分県大分市丹生1743-1',contactName:'',tel:'0975931369',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'旅館しらたき',address:'大分県玖珠郡九重町湯坪721',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'株式会社タイレオ',address:'愛知県名古屋市東区葵2-11-22',contactName:'新井',tel:'',email:'',sales:'',tech:'',note:'名古屋支社　係長',sites:[]},
+  {name:'アリストンホテル大分',address:'大分県大分市金池町1-2-1',contactName:'御担当者',tel:'097-578-7900',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'ゼオライト株式会社',address:'福岡県福岡市博多区那珂5-1-11',contactName:'御担当者',tel:'0924410793',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'社会福祉法人白菊会 ゆめの泉こども園',address:'大分県大分市新川町1丁目',contactName:'',tel:'097-535-0611',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'有限会社庄環',address:'大分県大分市下郡南3丁目1番29号',contactName:'藤田',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'山本',address:'大分県別府市上人本町1-34',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'株式会社ENG',address:'大分県大分市下郡670-62',contactName:'',tel:'097-535-7703',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'株式会社デルタ455',address:'福岡県福岡市博多区西春町1丁目4番3号',contactName:'',tel:'092-915-7111',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'由布の御宿 山もみじ',address:'大分県由布市湯布院町川北662',contactName:'',tel:'0977-84-5581',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'株式会社堀文',address:'大分県別府市亀川東町27-22',contactName:'',tel:'0977-66-0155',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'有限会社ウェッジ',address:'大分県別府市亀川',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'有限会社大丸建築工房',address:'福岡県福岡市博多区諸岡5-9-16',contactName:'',tel:'092-584-7101',email:'',sales:'',tech:'',note:'',sites:[]},
+  {name:'株式会社ワタナベ',address:'大分県宇佐市上田1770-1',contactName:'ご担当者',tel:'0978-34-7775',email:'',sales:'',tech:'',note:'ホテル事業部',sites:[]},
+  {name:'株式会社成栄設備',address:'大分県杵築市大内6461-1',contactName:'成久 繁樹',tel:'0978-63-0973',email:'',sales:'',tech:'',note:'代表取締役',sites:[]},
+  {name:'宇佐グランドホテル',address:'大分県宇佐市',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[{name:'宇佐グランドホテル 本館',address:'',contact:'',tel:'',contract:'定期点検契約',cycle:'毎月',note:'',equips:[]}]},
+  {name:'アリストンホテルおおいた',address:'大分県別府市上原',contactName:'',tel:'',email:'',sales:'',tech:'',note:'',sites:[{name:'アリストンホテルおおいた',address:'大分県別府市上原',contact:'ご担当者',tel:'',contract:'定期点検契約',cycle:'毎月',note:'',equips:[]}]},
+];
+function importCustomers(){
+  let added=0,skipped=0;
+  IMPORT_CUSTOMERS.forEach(ic=>{
+    if(wt_customers.some(c=>c.name===ic.name)){skipped++;return;}
+    wt_customers.push({id:uid(),...ic,sites:(ic.sites||[]).map(s=>({id:uid(),...s}))});
+    added++;
+  });
+  wtSaveC();renderMaster();populateCustSel();
+  alert(`インポート完了！追加：${added}件　スキップ：${skipped}件`);
+}
+
+
+// ===== 写真管理 =====
+let photoStore={before:[],during:[],after:[]};
+const CAT_LBL_DEF={before:'作業前',during:'作業中',after:'作業後'};
+function getCatLabel(cat){
+  return document.getElementById('cat-label-'+cat)?.value||CAT_LBL_DEF[cat];
+}
+
+function addPhotos(cat,input){
+  const files=Array.from(input.files);
+  if(!files.length)return;
+  files.forEach(file=>{
+    if(file.size>30*1024*1024){alert(file.name+' は30MB超のため添付できません');return;}
+    const reader=new FileReader();
+    reader.onerror=()=>alert(file.name+' の読み込みに失敗しました');
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=1600;let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        photoStore[cat].push({src:cv.toDataURL('image/jpeg',0.82),cap:''});
+        renderSlots(cat);
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+
+function renderSlots(cat){
+  const el=document.getElementById('slots-'+cat);if(!el)return;
+  el.innerHTML=photoStore[cat].map((p,i)=>`
+    <div class="photo-item">
+      <div class="photo-slot">
+        <img src="${p.src}">
+        <button class="photo-rm" onclick="removePhoto('${cat}',${i})">×</button>
+      </div>
+      <textarea class="photo-cap" rows="2" placeholder="概要" onchange="photoStore['${cat}'][${i}].cap=this.value">${p.cap||''}</textarea>
+    </div>`).join('');
+}
+
+function removePhoto(cat,i){photoStore[cat].splice(i,1);renderSlots(cat);}
+function clearPhotos(){photoStore={before:[],during:[],after:[]};['before','during','after'].forEach(c=>renderSlots(c));}
+function hasPhotos(){return photoStore.before.length||photoStore.during.length||photoStore.after.length;}
+
+// ===== 報告書印刷 =====
+function execPrint(mode){
+  const orig=document.title;document.title='';
+  document.body.classList.add(mode);
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{document.body.classList.remove(mode);document.title=orig;},100);
+  },350);
+}
+
+function fmtDate(dateStr){
+  if(!dateStr)return '';
+  const d=new Date(dateStr);
+  return `令和${d.getFullYear()-2018}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function fmtDateTime(dtStr){
+  if(!dtStr)return '—';
+  const d=new Date(dtStr);
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function buildPhotoHTML(photos,targetEl){
+  const all=[];
+  ['before','during','after'].forEach(cat=>{
+    (photos[cat]||[]).forEach(p=>all.push({...p,cat}));
+  });
+  if(!all.length){targetEl.innerHTML='';return;}
+  targetEl.innerHTML=`<div style="font-size:9.5pt;font-weight:700;margin:2mm 0 1.5mm;border-bottom:0.5pt solid #999;padding-bottom:1mm;">作業写真</div>
+    <div class="pt-photo-grid">${all.map((p,i)=>`
+      <div class="pt-photo-item">
+        <div class="pt-photo-wrap"><img src="${p.src}"><span class="pt-photo-num">${i+1}</span></div>
+        <div class="pt-photo-cap">写真${i+1}　${getCatLabel(p.cat)}${p.cap?' ／ '+p.cap:''}</div>
+      </div>`).join('')}
+    </div>`;
+}
+
+function fillTaiou(rec,photos){
+  const s=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v||'';};
+  const TL={e:'緊急',n:'通常',i:'点検'};
+  s('pt-cust',rec.custName);s('pt-date',fmtDate(rec.date));
+  s('pt-td-date',rec.date);s('pt-td-type',TL[rec.type]||'');
+  s('pt-td-cust',rec.custName);s('pt-td-site',rec.siteName);
+  s('pt-td-wtype',rec.workType);s('pt-td-worker',rec.worker);
+  s('pt-td-worker2',rec.worker);s('pt-td-loc',rec.location);
+  document.getElementById('pt-td-content').textContent=rec.content||'';
+  s('pt-td-next',rec.nextDate?(rec.nextDate+(rec.nextWork?' / '+rec.nextWork:'')):'');
+  s('pt-td-note',rec.note);
+  buildPhotoHTML(photos||{},document.getElementById('pt-photos'));
+}
+
+function fillKyukyu(rec,photos){
+  const s=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v||'';};
+  s('pk-cust',rec.custName);s('pk-date',fmtDate(rec.date));
+  s('pk-td-cust',rec.custName);s('pk-td-site',rec.siteName);
+  s('pk-td-worker',rec.worker);s('pk-td-worker2',rec.worker);s('pk-td-loc',rec.location);
+  s('pk-td-occur',fmtDateTime(rec.occurTime));s('pk-td-finder',rec.finder);
+  document.getElementById('pk-td-cause').textContent=rec.cause||rec.content||'';
+  document.getElementById('pk-td-action').textContent=rec.action||'';
+  s('pk-td-restore',fmtDateTime(rec.restoreTime)+(rec.restoreStatus?' ／ '+rec.restoreStatus:''));
+  document.getElementById('pk-td-prevention').textContent=rec.prevention||'';
+  buildPhotoHTML(photos||{},document.getElementById('pk-photos'));
+}
+
+
+// 区分に応じて自動で報告書を切り替え
+function printReportCurrent(){
+  if(wt_selType==='e'){printKyukyuCurrent();}
+  else{printTaiouCurrent();}
+}
+function printReportFromRecord(id){
+  const r=wt_records.find(x=>x.id===id);if(!r)return;
+  if(r.type==='e'){printKyukyuFromRecord(id);}
+  else{printTaiouFromRecord(id);}
+}
+function printTaiouCurrent(){
+  const cid=document.getElementById('r-cust')?.value;
+  const c=wt_customers.find(x=>x.id===cid);
+  const sid=document.getElementById('r-site')?.value;
+  const s=c?.sites.find(x=>x.id===sid);
+  fillTaiou({
+    date:document.getElementById('r-date')?.value||'',
+    type:wt_selType,
+    custName:c?.name||'',siteName:s?.name||'',
+    workType:document.getElementById('r-wtype')?.value||'',
+    worker:document.getElementById('r-worker')?.value||me?.name||'',
+    location:document.getElementById('r-loc')?.value||'',
+    content:document.getElementById('r-content')?.value||'',
+    note:document.getElementById('r-note')?.value||'',
+    nextDate:document.getElementById('r-next-date')?.value||'',
+    nextWork:document.getElementById('r-next-work')?.value||''
+  },photoStore);
+  execPrint('mode-taiou');
+}
+
+function printKyukyuCurrent(){
+  const cid=document.getElementById('r-cust')?.value;
+  const c=wt_customers.find(x=>x.id===cid);
+  const sid=document.getElementById('r-site')?.value;
+  const s=c?.sites.find(x=>x.id===sid);
+  fillKyukyu({
+    date:document.getElementById('r-date')?.value||'',
+    custName:c?.name||'',siteName:s?.name||'',
+    worker:document.getElementById('r-worker')?.value||me?.name||'',
+    location:document.getElementById('r-loc')?.value||'',
+    content:document.getElementById('r-content')?.value||'',
+    note:document.getElementById('r-note')?.value||'',
+    occurTime:document.getElementById('r-occur')?.value||'',
+    finder:document.getElementById('r-finder')?.value||'',
+    cause:document.getElementById('r-cause')?.value||'',
+    action:document.getElementById('r-action')?.value||'',
+    restoreTime:document.getElementById('r-restore')?.value||'',
+    restoreStatus:document.getElementById('r-restore-status')?.value||'',
+    prevention:document.getElementById('r-prevention')?.value||''
+  },photoStore);
+  execPrint('mode-kyukyu');
+}
+
+function printTaiouFromRecord(id){
+  const r=wt_records.find(x=>x.id===id);if(!r)return;
+  fillTaiou(r,r.photos||{});execPrint('mode-taiou');
+}
+function printKyukyuFromRecord(id){
+  const r=wt_records.find(x=>x.id===id);if(!r)return;
+  fillKyukyu(r,r.photos||{});execPrint('mode-kyukyu');
+}
+
+// ===== ユーザー =====
+const DEF_USERS=[{name:'管理者',pin:'1234'},{name:'技術者A',pin:'5678'},{name:'技術者B',pin:'9012'}];
+let users=[];
+let me=null;
+let pinBuf='';
+let target=null;
+
+function loadUsers(){
+  try{const d=localStorage.getItem('wtec_u');if(d)users=JSON.parse(d);}catch(e){}
+  if(!users.length)users=JSON.parse(JSON.stringify(DEF_USERS));
+}
+function saveUsers(){
+  const rows=users.map((_,i)=>{
+    const n=document.getElementById('un'+i)?.value.trim();
+    const p=document.getElementById('up'+i)?.value.trim();
+    return n&&p.length>=4?{name:n,pin:p}:null;
+  }).filter(Boolean);
+  if(!rows.length){alert('入力エラーです');return;}
+  users=rows;
+  try{localStorage.setItem('wtec_u',JSON.stringify(users));}catch(e){}
+  alert('保存しました');
+}
+function addUser(){users.push({name:'',pin:''});renderUserMgmt();}
+function removeUser(i){if(users.length<=1)return;users.splice(i,1);renderUserMgmt();}
+
+// ===== ログイン =====
+function boot(){
+  loadUsers();
+  setDate();
+  try{const s=sessionStorage.getItem('wtec_s');if(s){me=JSON.parse(s);openApp();return;}}catch(e){}
+  buildUserGrid();
+}
+
+function buildUserGrid(){
+  const g=document.getElementById('user-grid');
+  if(!g)return;
+  g.innerHTML=users.map((u,i)=>
+    `<button class="ubtn" onclick="pickUser(${i})">${u.name}</button>`
+  ).join('');
+  document.getElementById('pin-section').style.display='none';
+  pinBuf='';dots();
+}
+
+function pickUser(i){
+  target=i;
+  document.querySelectorAll('.ubtn').forEach((b,j)=>b.classList.toggle('selected',j===i));
+  document.getElementById('pin-label').textContent=users[i].name+' のPINを入力';
+  document.getElementById('pin-section').style.display='block';
+  document.getElementById('pin-error').textContent='';
+  pinBuf='';dots();
+}
+
+function pinKey(v){
+  if(v==='C'){pinBuf='';dots();return;}
+  if(v==='⌫'){pinBuf=pinBuf.slice(0,-1);dots();return;}
+  if(pinBuf.length>=4)return;
+  pinBuf+=v;dots();
+  if(pinBuf.length===4)setTimeout(tryPin,150);
+}
+
+function dots(){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('pd'+i);
+    if(d)d.classList.toggle('filled',i<pinBuf.length);
+  }
+}
+
+function tryPin(){
+  const u=users[target];
+  if(!u)return;
+  if(pinBuf===u.pin){
+    me={name:u.name,idx:target};
+    try{sessionStorage.setItem('wtec_s',JSON.stringify(me));}catch(e){}
+    openApp();
+  } else {
+    document.getElementById('pin-error').textContent='PINが違います';
+    pinBuf='';dots();
+    const c=document.getElementById('login-card');
+    if(c){c.classList.add('shake');setTimeout(()=>c.classList.remove('shake'),300);}
+  }
+}
+
+function openApp(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').style.display='flex';
+  const av=document.getElementById('sb-av');
+  const nm=document.getElementById('sb-name');
+  if(me){if(av)av.textContent=me.name[0];if(nm)nm.textContent=me.name;}
+  const h=new Date().getHours();
+  const g=document.getElementById('dash-greeting');
+  if(g)g.textContent=(h<12?'おはようございます':h<18?'こんにちは':'お疲れ様です');
+  const ds=document.getElementById('dash-sub');
+  if(ds&&me)ds.textContent=me.name+' さん、今日もよろしくお願いします';
+  document.getElementById('st-users').textContent=users.length;
+  loadDashStats();
+  // 水処理初期化
+  setTimeout(()=>{wtInitRecord&&wtInitRecord();},100);
+}
+
+function doLogout(){
+  try{sessionStorage.removeItem('wtec_s');}catch(e){}
+  me=null;
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('app').style.display='none';
+  buildUserGrid();
+}
+
+// ===== ナビ =====
+const PAGE_NAMES={dashboard:'ダッシュボード',water:'水処理対応管理',daily:'日報・作業報告',schedule:'スケジュール',sales:'売上・原価管理',users:'ユーザー管理'};
+let sbOpen=true;
+
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  const p=document.getElementById('page-'+id);
+  const n=document.getElementById('nav-'+id);
+  if(p)p.classList.add('active');
+  if(n)n.classList.add('active');
+  const t=document.getElementById('page-title');
+  if(t)t.textContent=PAGE_NAMES[id]||'';
+  if(id==='users')renderUserMgmt();
+  if(id==='schedule'&&gcalAccessToken){gcalRenderMonth();}
+}
+
+function goWt(sub){
+  document.querySelectorAll('.wt-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.wt-nav-btn').forEach(b=>b.classList.remove('active'));
+  const p=document.getElementById('wt-'+sub);
+  const n=document.getElementById('wtsub-'+sub);
+  if(p)p.classList.add('active');
+  if(n)n.classList.add('active');
+  if(sub==='record')wtInitRecord();
+  if(sub==='history')renderHist();
+  if(sub==='master')renderMaster();
+}
+
+function toggleSidebar(){
+  sbOpen=!sbOpen;
+  const sb=document.getElementById('sidebar');
+  const mn=document.getElementById('main-content');
+  if(sb)sb.classList.toggle('hidden',!sbOpen);
+  if(mn)mn.classList.toggle('full',!sbOpen);
+}
+
+// ===== ダッシュボード =====
+function loadDashStats(){
+  try{
+    const recs=JSON.parse(localStorage.getItem('wt_r')||'[]');
+    const custs=JSON.parse(localStorage.getItem('wt_c')||'[]');
+    const now=new Date();
+    const mRecs=recs.filter(r=>{
+      const d=new Date(r.date||'');
+      return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();
+    });
+    const sm=document.getElementById('st-month');if(sm)sm.textContent=mRecs.length;
+    const se=document.getElementById('st-emg');if(se)se.textContent=mRecs.filter(r=>r.type==='e').length;
+    const sc=document.getElementById('st-cust');if(sc)sc.textContent=custs.length;
+    const TL={e:'緊急',n:'通常',i:'点検'};
+    const dr=document.getElementById('dash-records');
+    if(dr&&recs.length){
+      dr.innerHTML=recs.slice(0,5).map(r=>`
+        <div class="act-item">
+          <div class="act-dot dot-${r.type||'n'}"></div>
+          <div class="act-main">
+            <div class="act-title">${r.custName||'—'}${r.siteName?' / '+r.siteName:''}</div>
+            <div class="act-sub">${r.workType||''}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="badge b-${r.type||'n'}">${TL[r.type]||'通常'}</div>
+            <div class="act-date">${r.date||''}</div>
+          </div>
+        </div>`).join('');
+    }
+  }catch(e){}
+}
+
+// ===== ユーザー管理画面 =====
+function renderUserMgmt(){
+  const el=document.getElementById('user-list');
+  if(!el)return;
+  el.innerHTML=users.map((u,i)=>`
+    <div class="urow">
+      <input type="text" id="un${i}" value="${u.name}" placeholder="名前" style="flex:1;">
+      <input type="password" id="up${i}" value="${u.pin}" placeholder="PIN" style="width:90px;text-align:center;letter-spacing:3px;" maxlength="4" inputmode="numeric">
+      <button class="btn-d" onclick="removeUser(${i})">削除</button>
+    </div>`).join('');
+}
+
+// ===== 日付 =====
+function setDate(){
+  const d=new Date();
+  const days=['日','月','火','水','木','金','土'];
+  const el=document.getElementById('topbar-date');
+  if(el)el.textContent=`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}（${days[d.getDay()]}）`;
+}
+
+boot();
+</script>
+
+<!-- 顧客モーダル -->
+<div class="modal-bg" id="modal-cust">
+  <div class="modal">
+    <div class="modal-hdr"><span id="mc-ttl">顧客を追加</span><button class="xbtn" onclick="closeModal('modal-cust')">✕</button></div>
+    <div class="g2">
+      <div class="fg full"><label>顧客名 *</label><input type="text" id="mc-name" placeholder="例：A市 上下水道局"></div>
+      <div class="fg full"><label>住所</label><input type="text" id="mc-addr"></div>
+      <div class="fg"><label>担当者（先方）</label><input type="text" id="mc-contact"></div>
+      <div class="fg"><label>電話番号</label><input type="text" id="mc-tel"></div>
+      <div class="fg full"><label>メール</label><input type="email" id="mc-email"></div>
+      <div class="fg"><label>担当営業（自社）</label><input type="text" id="mc-sales"></div>
+      <div class="fg"><label>担当技術者（自社）</label><input type="text" id="mc-tech"></div>
+      <div class="fg full"><label>備考</label><textarea id="mc-note" style="min-height:52px;"></textarea></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;">
+      <button class="btn-outline" onclick="closeModal('modal-cust')">キャンセル</button>
+      <button class="btn-full" style="width:auto;margin-top:0;padding:9px 20px;" onclick="saveCust()">保存</button>
+    </div>
+  </div>
+</div>
+<!-- 現場モーダル -->
+<div class="modal-bg" id="modal-site">
+  <div class="modal">
+    <div class="modal-hdr"><span>現場を追加</span><button class="xbtn" onclick="closeModal('modal-site')">✕</button></div>
+    <input type="hidden" id="msi-cid">
+    <div class="g2">
+      <div class="fg full"><label>現場名 *</label><input type="text" id="msi-name" placeholder="例：第1浄水場"></div>
+      <div class="fg full"><label>現場住所</label><input type="text" id="msi-addr"></div>
+      <div class="fg"><label>現場担当者</label><input type="text" id="msi-contact"></div>
+      <div class="fg"><label>現場電話</label><input type="text" id="msi-tel"></div>
+      <div class="fg"><label>契約種別</label>
+        <select id="msi-contract"><option value="">選択</option><option>保守契約</option><option>スポット対応</option><option>定期点検契約</option><option>総合管理契約</option></select>
+      </div>
+      <div class="fg"><label>点検周期</label>
+        <select id="msi-cycle"><option value="">選択</option><option>毎月</option><option>隔月</option><option>四半期</option><option>半年</option><option>年1回</option></select>
+      </div>
+      <div class="fg full"><label>備考</label><textarea id="msi-note" style="min-height:52px;"></textarea></div>
+    </div>
+    <div id="eq-inputs">
+      <div class="sec-label" style="margin-top:.75rem;">設備登録（任意）</div>
+      <div class="eq-row g2" style="margin-bottom:8px;">
+        <div class="fg"><label>設備名</label><input type="text" class="eq-n" placeholder="例：沈殿池ポンプ"></div>
+        <div class="fg"><label>型番・メーカー</label><input type="text" class="eq-m" placeholder="例：ABC-200 / 日立"></div>
+      </div>
+    </div>
+    <button class="add-dashed" onclick="addEqRow()">+ 設備を追加</button>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;">
+      <button class="btn-outline" onclick="closeModal('modal-site')">キャンセル</button>
+      <button class="btn-full" style="width:auto;margin-top:0;padding:9px 20px;" onclick="saveSite()">保存</button>
+    </div>
+  </div>
+</div>
+<!-- 詳細モーダル -->
+<div class="modal-bg" id="modal-detail">
+  <div class="modal">
+    <div class="modal-hdr"><span>対応記録詳細</span><button class="xbtn" onclick="closeModal('modal-detail')">✕</button></div>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+
+<!-- 対応報告書 印刷レイアウト -->
+<div id="print-taiou">
+  <div style="text-align:right;font-size:9pt;margin-bottom:2mm;"><span id="pt-date"></span></div>
+  <h1 style="font-size:16pt;font-weight:700;text-align:center;margin:0 0 5mm;letter-spacing:.05em;">対応報告書</h1>
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:5mm;">
+    <div style="font-size:10.5pt;">
+      <span style="display:inline-block;border-bottom:0.5pt solid #000;min-width:55mm;padding-bottom:1mm;" id="pt-cust"></span>　<span style="font-size:9pt;">御中</span>
+    </div>
+    <div style="position:relative;text-align:left;line-height:2;margin-left:auto;padding-right:22mm;">
+      <div style="font-size:8pt;">〒874-0829　別府市上原６－２９</div>
+      <div><strong style="font-size:13pt;letter-spacing:.03em;">W-TEC　株式会社</strong></div>
+      <div style="font-size:8pt;">TEL 0977-23-7818</div>
+      <img src="data:image/jpeg;base64,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" style="position:absolute;top:0;right:0;width:20mm;height:20mm;object-fit:contain;opacity:.85;">
+    </div>
+  </div>
+  <table>
+    <colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>
+    <tbody>
+      <tr><th>対応日</th><td id="pt-td-date"></td><th>対応区分</th><td id="pt-td-type"></td></tr>
+      <tr><th>顧客名</th><td id="pt-td-cust"></td><th>現場名</th><td id="pt-td-site"></td></tr>
+      <tr><th>作業種</th><td id="pt-td-wtype"></td><th>担当者</th><td id="pt-td-worker"></td></tr>
+      <tr><th>作業箇所</th><td colspan="3" id="pt-td-loc"></td></tr>
+      <tr><th>作業内容</th><td colspan="3" id="pt-td-content" style="min-height:23mm;white-space:pre-wrap;"></td></tr>
+      <tr><th>次回予定</th><td colspan="3" id="pt-td-next"></td></tr>
+    </tbody>
+  </table>
+  <div id="pt-photos"></div>
+  <div style="font-size:9.5pt;font-weight:700;margin:2mm 0 1mm;">備考</div>
+  <div class="pt-biko" id="pt-td-note"></div>
+  <div style="position:fixed;bottom:12mm;right:14mm;display:flex;gap:16mm;align-items:center;font-size:9pt;">
+    <div style="display:flex;align-items:center;gap:3mm;"><span>担当者名</span><span style="border-bottom:0.5pt solid #333;min-width:45mm;padding:1mm 2mm;display:inline-block;" id="pt-td-worker2"></span></div>
+  </div>
+</div>
+
+<!-- 緊急報告書 印刷レイアウト -->
+<div id="print-kyukyu">
+  <div style="text-align:right;font-size:9pt;margin-bottom:2mm;"><span id="pk-date"></span></div>
+  <h1 style="font-size:16pt;font-weight:700;text-align:center;margin:0 0 5mm;letter-spacing:.05em;">緊急報告書</h1>
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:5mm;">
+    <div style="font-size:10.5pt;">
+      <span style="display:inline-block;border-bottom:0.5pt solid #000;min-width:55mm;padding-bottom:1mm;" id="pk-cust"></span>　<span style="font-size:9pt;">御中</span>
+    </div>
+    <div style="position:relative;text-align:left;line-height:2;margin-left:auto;padding-right:22mm;">
+      <div style="font-size:8pt;">〒874-0829　別府市上原６－２９</div>
+      <div><strong style="font-size:13pt;letter-spacing:.03em;">W-TEC　株式会社</strong></div>
+      <div style="font-size:8pt;">TEL 0977-23-7818</div>
+      <img src="data:image/jpeg;base64,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" style="position:absolute;top:0;right:0;width:20mm;height:20mm;object-fit:contain;opacity:.85;">
+    </div>
+  </div>
+  <div class="pk-urgent">― 緊急対応報告 ―</div>
+  <table>
+    <colgroup><col style="width:18%"><col style="width:32%"><col style="width:18%"><col style="width:32%"></colgroup>
+    <tbody>
+      <tr><th>顧客名</th><td id="pk-td-cust"></td><th>現場名</th><td id="pk-td-site"></td></tr>
+      <tr><th>担当者</th><td id="pk-td-worker"></td><th>作業箇所</th><td id="pk-td-loc"></td></tr>
+      <tr><th>発生日時</th><td id="pk-td-occur"></td><th>発見者</th><td id="pk-td-finder"></td></tr>
+    </tbody>
+  </table>
+  <table>
+    <colgroup><col style="width:18%"><col style="width:82%"></colgroup>
+    <tbody>
+      <tr><th>異常の内容<br>・原因</th><td id="pk-td-cause" style="white-space:pre-wrap;min-height:23mm;"></td></tr>
+      <tr><th>対応内容<br>・処置</th><td id="pk-td-action" style="white-space:pre-wrap;min-height:23mm;"></td></tr>
+      <tr><th>復旧</th><td id="pk-td-restore"></td></tr>
+      <tr><th>再発防止策</th><td id="pk-td-prevention" style="white-space:pre-wrap;min-height:23mm;"></td></tr>
+    </tbody>
+  </table>
+  <div id="pk-photos"></div>
+  <div style="position:fixed;bottom:12mm;right:14mm;display:flex;gap:16mm;align-items:center;font-size:9pt;">
+    <div style="display:flex;align-items:center;gap:3mm;"><span>担当者名</span><span style="border-bottom:0.5pt solid #333;min-width:40mm;padding:1mm 2mm;display:inline-block;" id="pk-td-worker2"></span></div>
+    <div style="display:flex;align-items:center;gap:3mm;"><span>確認者</span><span style="border-bottom:0.5pt solid #333;min-width:40mm;padding:1mm 2mm;display:inline-block;"></span></div>
+  </div>
+</div>
+
+
+<!-- Googleカレンダー 予定追加モーダル -->
+<div class="modal-bg" id="modal-gcal-add">
+  <div class="modal">
+    <div class="modal-hdr"><span>予定を追加</span><button class="xbtn" onclick="closeModal('modal-gcal-add')">✕</button></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="fg"><label>タイトル *</label><input type="text" id="gcal-title" placeholder="例：アリストンホテル 定期点検"></div>
+      <div class="g2">
+        <div class="fg"><label>開始日時</label><input type="datetime-local" id="gcal-start"></div>
+        <div class="fg"><label>終了日時</label><input type="datetime-local" id="gcal-end"></div>
+      </div>
+      <div class="fg"><label>場所</label><input type="text" id="gcal-location" placeholder="例：宇佐グランドホテル"></div>
+      <div class="fg"><label>説明</label><textarea id="gcal-desc" placeholder="作業内容・メモ" style="min-height:60px;"></textarea></div>
+      <div class="fg">
+        <label>カレンダー</label>
+        <select id="gcal-cal-select"></select>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;">
+      <button class="btn-outline" onclick="closeModal('modal-gcal-add')">キャンセル</button>
+      <button class="btn-p" onclick="gcalAddEvent()">追加する</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
