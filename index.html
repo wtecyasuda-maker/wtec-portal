@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>W-TEC Business Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0a2744;--navy2:#0f3460;--navy3:#1a4a7a;
+  --blue:#1e6fbf;--blue2:#4a90d0;--blue3:#7ab8e8;
+  --teal:#0fa37f;--teal2:#1dbfa0;
+  --text:#e8f0f8;--text2:#8ab8d8;--text3:rgba(100,160,220,.4);
+  --border:rgba(100,160,220,.15);--border2:rgba(100,160,220,.28);
+  --card:rgba(255,255,255,.04);--card2:rgba(255,255,255,.07);
+  --red:#e05252;--amber:#e8a020;--green:#0fa37f;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+button,a,[onclick]{cursor:pointer;}
+body{font-family:'Outfit','Hiragino Sans',sans-serif;background:var(--navy);color:var(--text);min-height:100vh;}
+
+/* ログイン */
+#login-screen{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:var(--navy);}
+#login-screen.hidden{display:none;}
+.login-bg-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;}
+.orb1{width:400px;height:400px;background:var(--blue);opacity:.12;top:-100px;right:-100px;}
+.orb2{width:300px;height:300px;background:var(--teal);opacity:.08;bottom:-80px;left:-60px;}
+.login-card{position:relative;width:92%;max-width:380px;background:rgba(10,39,68,.9);border:1px solid var(--border2);border-radius:20px;padding:2.5rem 2rem;text-align:center;}
+.login-badge{display:inline-flex;align-items:center;gap:6px;background:var(--navy3);border:1px solid var(--border2);border-radius:20px;padding:4px 14px;font-size:10px;letter-spacing:.12em;color:var(--blue3);margin-bottom:1.25rem;}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:.25rem;}
+.logo-icon{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:26px;height:26px;}
+.login-company{font-size:26px;font-weight:800;color:#fff;letter-spacing:.06em;}
+.login-sub{font-size:11px;color:var(--text2);letter-spacing:.1em;margin-bottom:1.5rem;}
+.step-label{font-size:12px;color:var(--text2);margin-bottom:.6rem;text-align:left;}
+.user-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;}
+.ubtn{padding:12px 8px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .18s;width:100%;}
+.ubtn:hover{background:rgba(30,111,191,.2);border-color:var(--blue2);color:#fff;}
+.ubtn.selected{background:rgba(30,111,191,.3);border-color:var(--blue2);color:#fff;font-weight:600;}
+#pin-section{display:none;}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:1.25rem;}
+.pin-dot{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;transition:all .15s;}
+.pin-dot.filled{background:var(--blue2);border-color:var(--blue2);}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:220px;margin:0 auto;}
+.pin-key{padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-size:18px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.pin-key:hover{background:rgba(30,111,191,.25);border-color:var(--blue2);}
+.pin-key:active{transform:scale(.95);}
+.pin-error{color:var(--red);font-size:12px;height:20px;margin-top:.5rem;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
+.shake{animation:shake .3s ease;}
+
+/* アプリ */
+#app{display:none;min-height:100vh;}
+#app.visible{display:block;}
+.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:2rem;}
+.welcome h1{font-size:2.5rem;margin-bottom:1rem;background:linear-gradient(135deg,var(--blue),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.welcome p{font-size:1.2rem;color:var(--text2);margin-bottom:2rem;}
+.logout-btn{padding:12px 24px;background:var(--card);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:14px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.logout-btn:hover{background:var(--card2);border-color:var(--blue2);color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div id="login-screen">
+  <div class="login-bg-orb orb1"></div>
+  <div class="login-bg-orb orb2"></div>
+  <div class="login-card" id="login-card">
+    <div class="login-badge">SECURE LOGIN</div>
+    <div class="login-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div class="login-company">W-TEC</div>
+    </div>
+    <div class="login-sub">Business Portal</div>
+    
+    <div id="user-section">
+      <div class="step-label">ユーザーを選択</div>
+      <div class="user-grid" id="user-grid"></div>
+    </div>
+    
+    <div id="pin-section">
+      <div class="step-label" id="pin-label">PINを入力</div>
+      <div class="pin-dots">
+        <div class="pin-dot" id="pd0"></div>
+        <div class="pin-dot" id="pd1"></div>
+        <div class="pin-dot" id="pd2"></div>
+        <div class="pin-dot" id="pd3"></div>
+      </div>
+      <div class="pin-keypad">
+        <button class="pin-key" onclick="pinKey('1')">1</button>
+        <button class="pin-key" onclick="pinKey('2')">2</button>
+        <button class="pin-key" onclick="pinKey('3')">3</button>
+        <button class="pin-key" onclick="pinKey('4')">4</button>
+        <button class="pin-key" onclick="pinKey('5')">5</button>
+        <button class="pin-key" onclick="pinKey('6')">6</button>
+        <button class="pin-key" onclick="pinKey('7')">7</button>
+        <button class="pin-key" onclick="pinKey('8')">8</button>
+        <button class="pin-key" onclick="pinKey('9')">9</button>
+        <button class="pin-key" onclick="pinKey('C')">C</button>
+        <button class="pin-key" onclick="pinKey('0')">0</button>
+        <button class="pin-key" onclick="pinKey('⌫')">⌫</button>
+      </div>
+      <div class="pin-error" id="pin-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- アプリ画面 -->
+<div id="app">
+  <div class="welcome">
+    <h1>W-TEC Business Portal</h1>
+    <p id="welcome-msg">ログイン成功！</p>
+    <p style="color:var(--text3);font-size:0.9rem;margin-bottom:2rem;">完全な機能は現在開発中です</p>
+    <button class="logout-btn" onclick="doLogout()">ログアウト</button>
+  </div>
+</div>
+
+<script>
+// ===== グローバル変数 =====
+const DEF_USERS = [
+  { name: '管理者', pin: '1234' },
+  { name: '技術者A', pin: '5678' },
+  { name: '技術者B', pin: '9012' }
+];
+
+let users = [];
+let me = null;
+let pinBuf = '';
+let selectedUserIndex = null;
+
+// ===== ユーザー管理 =====
+function loadUsers() {
+  try {
+    const data = localStorage.getItem('wtec_users');
+    if (data) {
+      users = JSON.parse(data);
+    }
+  } catch (e) {
+    console.error('ユーザーデータの読み込みエラー:', e);
+  }
+  
+  // ユーザーがいない場合はデフォルトユーザーを使用
+  if (!users || users.length === 0) {
+    users = JSON.parse(JSON.stringify(DEF_USERS));
+  }
+}
+
+function saveUsers() {
+  try {
+    localStorage.setItem('wtec_users', JSON.stringify(users));
+  } catch (e) {
+    console.error('ユーザーデータの保存エラー:', e);
+  }
+}
+
+// ===== ログイン機能 =====
+function boot() {
+  console.log('🚀 アプリケーション起動中...');
+  
+  // ユーザーデータをロード
+  loadUsers();
+  console.log('✅ ユーザーデータ読み込み完了:', users.length, '名');
+  
+  // セッションストレージからログイン状態を確認
+  try {
+    const session = sessionStorage.getItem('wtec_session');
+    if (session) {
+      me = JSON.parse(session);
+      console.log('✅ セッション復元:', me.name);
+      openApp();
+      return;
+    }
+  } catch (e) {
+    console.error('セッション復元エラー:', e);
+  }
+  
+  // ログイン画面を表示
+  buildUserGrid();
+  console.log('✅ ログイン画面表示');
+}
+
+function buildUserGrid() {
+  const grid = document.getElementById('user-grid');
+  if (!grid) {
+    console.error('❌ user-grid要素が見つかりません');
+    return;
+  }
+  
+  grid.innerHTML = users.map((user, index) => 
+    `<button class="ubtn" onclick="pickUser(${index})">${user.name}</button>`
+  ).join('');
+  
+  document.getElementById('pin-section').style.display = 'none';
+  pinBuf = '';
+  updatePinDots();
+}
+
+function pickUser(index) {
+  console.log('ユーザー選択:', users[index].name);
+  selectedUserIndex = index;
+  
+  // ユーザーボタンのスタイル更新
+  const buttons = document.querySelectorAll('.ubtn');
+  buttons.forEach((btn, i) => {
+    btn.classList.toggle('selected', i === index);
+  });
+  
+  // PIN入力セクションを表示
+  const pinSection = document.getElementById('pin-section');
+  const pinLabel = document.getElementById('pin-label');
+  const pinError = document.getElementById('pin-error');
+  
+  if (pinSection) pinSection.style.display = 'block';
+  if (pinLabel) pinLabel.textContent = users[index].name + ' のPINを入力';
+  if (pinError) pinError.textContent = '';
+  
+  pinBuf = '';
+  updatePinDots();
+}
+
+function pinKey(value) {
+  console.log('PIN入力:', value);
+  
+  if (value === 'C') {
+    // クリア
+    pinBuf = '';
+    updatePinDots();
+    return;
+  }
+  
+  if (value === '⌫') {
+    // バックスペース
+    pinBuf = pinBuf.slice(0, -1);
+    updatePinDots();
+    return;
+  }
+  
+  // 数字の入力
+  if (pinBuf.length >= 4) return;
+  
+  pinBuf += value;
+  updatePinDots();
+  
+  // 4桁入力完了時に認証
+  if (pinBuf.length === 4) {
+    setTimeout(tryPin, 150);
+  }
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pd' + i);
+    if (dot) {
+      dot.classList.toggle('filled', i < pinBuf.length);
+    }
+  }
+}
+
+function tryPin() {
+  const user = users[selectedUserIndex];
+  if (!user) {
+    console.error('❌ ユーザーが選択されていません');
+    return;
+  }
+  
+  console.log('PIN認証試行:', { user: user.name, pin: pinBuf });
+  
+  if (pinBuf === user.pin) {
+    // ログイン成功
+    console.log('✅ ログイン成功');
+    me = {
+      name: user.name,
+      index: selectedUserIndex
+    };
+    
+    // セッションに保存
+    try {
+      sessionStorage.setItem('wtec_session', JSON.stringify(me));
+    } catch (e) {
+      console.error('セッション保存エラー:', e);
+    }
+    
+    openApp();
+  } else {
+    // ログイン失敗
+    console.log('❌ PIN不一致');
+    const pinError = document.getElementById('pin-error');
+    if (pinError) pinError.textContent = 'PINが違います';
+    
+    pinBuf = '';
+    updatePinDots();
+    
+    // シェイクアニメーション
+    const card = document.getElementById('login-card');
+    if (card) {
+      card.classList.add('shake');
+      setTimeout(() => card.classList.remove('shake'), 300);
+    }
+  }
+}
+
+function openApp() {
+  console.log('✅ アプリ画面を開く:', me.name);
+  
+  // ログイン画面を非表示
+  const loginScreen = document.getElementById('login-screen');
+  if (loginScreen) loginScreen.classList.add('hidden');
+  
+  // アプリ画面を表示
+  const app = document.getElementById('app');
+  if (app) {
+    app.style.display = 'block';
+    app.classList.add('visible');
+  }
+  
+  // ウェルカムメッセージを更新
+  const welcomeMsg = document.getElementById('welcome-msg');
+  if (welcomeMsg && me) {
+    const hour = new Date().getHours();
+    let greeting = 'こんにちは';
+    if (hour < 12) greeting = 'おはようございます';
+    else if (hour >= 18) greeting = 'お疲れ様です';
+    
+    welcomeMsg.textContent = `${greeting}、${me.name}さん！`;
+  }
+}
+
+function doLogout() {
+  console.log('ログアウト');
+  
+  // セッションをクリア
+  try {
+    sessionStorage.removeItem('wtec_session');
+  } catch (e) {
+    console.error('セッションクリアエラー:', e);
+  }
+  
+  me = null;
+  
+  // ログイン画面を表示
+  const loginScreen = document.getElementById('login-screen');
+  if (loginScreen) loginScreen.classList.remove('hidden');
+  
+  // アプリ画面を非表示
+  const app = document.getElementById('app');
+  if (app) {
+    app.style.display = 'none';
+    app.classList.remove('visible');
+  }
+  
+  // ログイン画面をリセット
+  buildUserGrid();
+}
+
+// ===== 起動 =====
+// DOMContentLoadedイベントで起動
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  // 既に読み込み完了している場合は即座に起動
+  boot();
+}
+</script>
+
+</body>
+</html>
